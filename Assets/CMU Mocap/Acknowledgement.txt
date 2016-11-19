@@ -1,0 +1,9 @@
+The motion-captured animation data in this directory is originally created by
+Carnegie Mellon University Graphics Lab.
+
+http://mocap.cs.cmu.edu
+
+cMonkeys converted these mocap data into FBX files for ease of importing into
+Unity. These FBX files are distributed on Unity Asset Store.
+
+http://u3d.as/8An
