@@ -33,10 +33,14 @@ namespace Skinner
         {
             // Input vertices
             var inVertices = source.vertices;
+            var inNormals = source.normals;
+            var inTangents = source.tangents;
             var inBoneWeights = source.boneWeights;
 
             // Enumerate unique vertices.
             var outVertices = new List<Vector3>();
+            var outNormals = new List<Vector3>();
+            var outTangents = new List<Vector4>();
             var outBoneWeights = new List<BoneWeight>();
 
             for (var i = 0; i < inVertices.Length; i++)
@@ -44,6 +48,8 @@ namespace Skinner
                 if (!outVertices.Any(_ => _ == inVertices[i]))
                 {
                     outVertices.Add(inVertices[i]);
+                    outNormals.Add(inNormals[i]);
+                    outTangents.Add(inTangents[i]);
                     outBoneWeights.Add(inBoneWeights[i]);
                 }
             }
@@ -62,8 +68,6 @@ namespace Skinner
 
             // Clear the unused attributes.
             _mesh.colors = null;
-            _mesh.normals = null;
-            _mesh.tangents = null;
             _mesh.uv2 = null;
             _mesh.uv3 = null;
             _mesh.uv4 = null;
@@ -71,6 +75,8 @@ namespace Skinner
             // Overwrite the vertices.
             _mesh.subMeshCount = 0;
             _mesh.SetVertices(outVertices);
+            _mesh.SetNormals(outNormals);
+            _mesh.SetTangents(outTangents);
             _mesh.SetUVs(0, outUVs);
             _mesh.bindposes = source.bindposes;
             _mesh.boneWeights = outBoneWeights.ToArray();

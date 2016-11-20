@@ -26,28 +26,23 @@ namespace Skinner
 
             // Build the vertex and index array.
             var vertexCount = _source.model.vertexCount;
-            var vertices = new Vector3 [vertexCount * 4];
-            var indices = new int [vertexCount * 8];
+            var vertices = new Vector3 [vertexCount * 6];
+            var indices = new int [vertexCount * 6];
 
             for (var i = 0; i < vertexCount; i++)
             {
-                var vi = i * 4;
+                var vi = i * 6;
                 var u = (0.5f + i) / vertexCount;
-                vertices[vi + 0] = new Vector3(u, -1, -1);
-                vertices[vi + 1] = new Vector3(u, +1, -1);
-                vertices[vi + 2] = new Vector3(u, -1, +1);
-                vertices[vi + 3] = new Vector3(u, +1, +1);
-
-                var ii = i * 8;
-                indices[ii + 0] = vi;
-                indices[ii + 1] = vi + 1;
-                indices[ii + 2] = vi + 1;
-                indices[ii + 3] = vi + 3;
-                indices[ii + 4] = vi + 3;
-                indices[ii + 5] = vi + 2;
-                indices[ii + 6] = vi + 2;
-                indices[ii + 7] = vi + 0;
+                vertices[vi + 0] = new Vector3(u, 0, 0);
+                vertices[vi + 1] = new Vector3(u, 0, 1);
+                vertices[vi + 2] = new Vector3(u, 1, 0);
+                vertices[vi + 3] = new Vector3(u, 1, 1);
+                vertices[vi + 4] = new Vector3(u, 2, 0);
+                vertices[vi + 5] = new Vector3(u, 2, 1);
             }
+
+            for (var i = 0; i < indices.Length; i++)
+                indices[i] = i;
 
             // Create a mesh.
             _mesh = new Mesh();
@@ -66,7 +61,10 @@ namespace Skinner
 
         void Update()
         {
+            _material.SetTexture("_PreviousPositionBuffer", _source.previousPositionBuffer);
             _material.SetTexture("_PositionBuffer", _source.positionBuffer);
+            _material.SetTexture("_NormalBuffer", _source.normalBuffer);
+            _material.SetTexture("_TangentBuffer", _source.tangentBuffer);
             Graphics.DrawMesh(_mesh, Vector3.zero, Quaternion.identity, _material, gameObject.layer, null, 0);
         }
     }

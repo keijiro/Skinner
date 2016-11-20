@@ -1,9 +1,5 @@
 ﻿Shader "Hidden/Skinner/Debug"
 {
-    Properties
-    {
-        _PositionBuffer("", 2D) = "black"{}
-    }
     SubShader
     {
         ZTest Always
@@ -19,6 +15,11 @@
 
             #include "UnityCG.cginc"
 
+            sampler2D _PreviousPositionBuffer;
+            sampler2D _PositionBuffer;
+            sampler2D _NormalBuffer;
+            sampler2D _TangentBuffer;
+
             struct appdata
             {
                 float4 position : POSITION;
@@ -27,30 +28,49 @@
             struct v2f
             {
                 float4 position : SV_POSITION;
+                float3 color : COLOR;
             };
-
-            sampler2D _PositionBuffer;
-
-            float4 RetrievePosition(float u)
-            {
-                float4 texcoord = float4(u, 0.5, 0, 0);
-                return float4(tex2Dlod(_PositionBuffer, texcoord).xyz, 1);
-            }
 
             v2f vert(appdata v)
             {
                 float3 uvw = v.position.xyz;
-                float4 pos = UnityObjectToClipPos(RetrievePosition(uvw.x));
-                pos.xy += uvw.yz * _ScreenParams.yx * 0.0001;
+                float4 texcoord = float4(uvw.x, 0.5, 0, 0);
+
+                float3 prev = tex2Dlod(_PreviousPositionBuffer, texcoord).xyz;
+                float3 position = tex2Dlod(_PositionBuffer, texcoord).xyz;
+                float3 normal = tex2Dlod(_NormalBuffer, texcoord).xyz;
+                float3 tangent = tex2Dlod(_TangentBuffer, texcoord).xyz;
+
+                float3 color;
+
+                if (uvw.y < 0.5)
+                {
+                    // line 0 - Velocity
+                    position = position + (position - prev) * uvw.z * 5;
+                    color = float3(1, 0, 0);
+                }
+                else if (uvw.y < 1.5)
+                {
+                    // line 1 - normal
+                    position += normal * uvw.z * 0.05;
+                    color = float3(0, 1, 0);
+                }
+                else
+                {
+                    // line 2 - tangent
+                    position += tangent * uvw.z * 0.05;
+                    color = float3(0, 0, 1);
+                }
 
                 v2f o;
-                o.position = pos;
+                o.position = UnityObjectToClipPos(float4(position, 1));
+                o.color = color;
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                return half4(1, 0, 0, 0.2);
+                return half4(i.color, 0.2);
             }
 
             ENDCG

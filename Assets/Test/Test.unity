@@ -476,7 +476,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 279148f5956647743aa4d1c8440ff0f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _model: {fileID: 11400000, guid: 53b69377f1ad8c74484c111330626122, type: 2}
+  _model: {fileID: 11400000, guid: 46397f2028a13cd47a3bb6ce8fbd4265, type: 2}
   _replacementShader: {fileID: 4800000, guid: 3731eb6d7ec045947affb03711bfbc08, type: 3}
   _sourceMaterial: {fileID: 2100000, guid: ea72285045ca83441b0e1dcdc29cd32c, type: 2}
 --- !u!1 &1969479629

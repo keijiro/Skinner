@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Skinner
 {
@@ -16,10 +17,20 @@ namespace Skinner
 
         #region Public property (runtime only)
 
-        RenderTexture _positionBuffer;
-
         public RenderTexture positionBuffer {
-            get { return _positionBuffer; }
+            get { return _swapFlag ? _positionBuffer1 : _positionBuffer0; }
+        }
+
+        public RenderTexture previousPositionBuffer {
+            get { return _swapFlag ? _positionBuffer0 : _positionBuffer1; }
+        }
+
+        public RenderTexture normalBuffer {
+            get { return _normalBuffer; }
+        }
+
+        public RenderTexture tangentBuffer {
+            get { return _tangentBuffer; }
         }
 
         #endregion
@@ -34,6 +45,21 @@ namespace Skinner
         #region Private members
 
         Camera _camera;
+        RenderTexture _positionBuffer0;
+        RenderTexture _positionBuffer1;
+        RenderTexture _normalBuffer;
+        RenderTexture _tangentBuffer;
+        RenderBuffer[] _mrt0;
+        RenderBuffer[] _mrt1;
+        bool _swapFlag;
+
+        // Create a render texture used as a vector buffer.
+        RenderTexture CreateBuffer()
+        {
+            var rt = new RenderTexture(_model.vertexCount, 1, 0, RenderTextureFormat.ARGBFloat);
+            rt.filterMode = FilterMode.Point;
+            return rt;
+        }
 
         // Override the settings of the skinned mesh renderer.
         void OverrideRenderer()
@@ -41,7 +67,8 @@ namespace Skinner
             var r = GetComponent<SkinnedMeshRenderer>();
             r.sharedMesh = _model.mesh;
             r.material = _sourceMaterial;
-            //r.enabled = false; // Will be controlled by CullingStateController.
+            r.receiveShadows = false;
+            r.enabled = false; // Will be controlled by CullingStateController.
         }
 
         // Create a camera used for rendering the position buffer.
@@ -62,7 +89,7 @@ namespace Skinner
 
             _camera.renderingPath= RenderingPath.Forward;
             _camera.clearFlags = CameraClearFlags.SolidColor;
-            _camera.targetTexture = _positionBuffer;
+            _camera.depth = -10000;
 
             _camera.nearClipPlane = -100;
             _camera.farClipPlane = 100;
@@ -82,19 +109,35 @@ namespace Skinner
 
         void Start()
         {
-            _positionBuffer = new RenderTexture(
-                _model.vertexCount, 1, 0, RenderTextureFormat.ARGBFloat
-            );
-            _positionBuffer.filterMode = FilterMode.Point;
+            _positionBuffer0 = CreateBuffer();
+            _positionBuffer1 = CreateBuffer();
+            _normalBuffer = CreateBuffer();
+            _tangentBuffer = CreateBuffer();
+
+            // MRT set 0
+            _mrt0 = new [] {
+                _positionBuffer0.colorBuffer,
+                _normalBuffer.colorBuffer,
+                _tangentBuffer.colorBuffer
+            };
+
+            // MRT set 1
+            _mrt1 = new [] {
+                _positionBuffer1.colorBuffer,
+                _normalBuffer.colorBuffer,
+                _tangentBuffer.colorBuffer
+            };
 
             OverrideRenderer();
             BuildCamera();
+
+            // Set MRT 0
+            _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
         }
 
         void OnEnable()
         {
-            if (_camera != null)
-                _camera.enabled = true;
+            if (_camera != null) _camera.enabled = true;
         }
 
         void OnDisable()
@@ -104,8 +147,20 @@ namespace Skinner
 
         void OnDestroy()
         {
-            if (_positionBuffer != null)
-                Destroy(_positionBuffer);
+            if (_positionBuffer0 != null) Destroy(_positionBuffer0);
+            if (_positionBuffer1 != null) Destroy(_positionBuffer1);
+            if (_normalBuffer != null) Destroy(_normalBuffer);
+            if (_tangentBuffer != null) Destroy(_tangentBuffer);
+        }
+
+        void Update()
+        {
+            _swapFlag = !_swapFlag;
+
+            if (_swapFlag)
+                _camera.SetTargetBuffers(_mrt1, _positionBuffer1.depthBuffer);
+            else
+                _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
         }
 
         #endregion
