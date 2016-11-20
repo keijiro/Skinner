@@ -3,10 +3,6 @@
     SubShader
     {
         Tags { "Skinner" = "Source" }
-        Pass
-        {
-            ZWrite Off
-            ColorMask 0
-        }
+        Pass {}
     }
 }

@@ -6,13 +6,15 @@ using System.Linq;
 
 namespace Skinner
 {
-    [CustomEditor(typeof(SkinnerTemplate))]
-    public class SkinnerTemplateEditor : Editor
+    [CustomEditor(typeof(SkinnerModel))]
+    public class SkinnerModelEditor : Editor
     {
         #region Editor functions
 
         public override void OnInspectorGUI()
         {
+            var model = (SkinnerModel)target;
+            EditorGUILayout.LabelField("Vertex Count", model.vertexCount.ToString());
         }
 
         #endregion
@@ -26,13 +28,13 @@ namespace Skinner
             }
         }
 
-        [MenuItem("Assets/Skinner/Convert To Template", true)]
+        [MenuItem("Assets/Skinner/Convert Model", true)]
         static bool ValidateAssets()
         {
             return SelectedMeshAssets.Length > 0;
         }
 
-        [MenuItem("Assets/Skinner/Convert To Template")]
+        [MenuItem("Assets/Skinner/Convert Model")]
         static void ConvertAssets()
         {
             var converted = new List<Object>();
@@ -41,10 +43,10 @@ namespace Skinner
             {
                 // Destination file path.
                 var dirPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(source));
-                var assetPath = AssetDatabase.GenerateUniqueAssetPath(dirPath + "/Skinner Template.asset");
+                var assetPath = AssetDatabase.GenerateUniqueAssetPath(dirPath + "/Skinner Model.asset");
 
-                // Create a template asset.
-                var asset = ScriptableObject.CreateInstance<SkinnerTemplate>();
+                // Create a skinner model asset.
+                var asset = ScriptableObject.CreateInstance<SkinnerModel>();
                 asset.Initialize(source);
                 AssetDatabase.CreateAsset(asset, assetPath);
                 AssetDatabase.AddObjectToAsset(asset.mesh, asset);

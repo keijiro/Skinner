@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Skinner
 {
-    public class SkinnerTemplate : ScriptableObject
+    public class SkinnerModel : ScriptableObject
     {
         #region Public properties
 
@@ -15,7 +15,7 @@ namespace Skinner
 
         [SerializeField] int _vertexCount;
 
-        /// Tmplate mesh (read only)
+        /// Mesh of vertices (read only)
         public Mesh mesh {
             get { return _mesh; }
         }
@@ -35,12 +35,10 @@ namespace Skinner
             var inVertices = source.vertices;
             var inBoneWeights = source.boneWeights;
 
-            // Output vertices
+            // Enumerate unique vertices.
             var outVertices = new List<Vector3>();
             var outBoneWeights = new List<BoneWeight>();
-            //var outUVs = new List<Vector2>();
 
-            // Enumerate unique vertices.
             for (var i = 0; i < inVertices.Length; i++)
             {
                 if (!outVertices.Any(_ => _ == inVertices[i]))
@@ -52,13 +50,13 @@ namespace Skinner
 
             // Assign unique UVs to the vertices.
             var outUVs = Enumerable.Range(0, outVertices.Count).
-                Select(i => Vector2.right * i / outVertices.Count).ToList();
+                Select(i => Vector2.right * (i + 0.5f) / outVertices.Count).ToList();
 
-            // Output index array
+            // Enumerate vertex indices.
             var indices = Enumerable.Range(0, outVertices.Count).ToArray();
 
             // Make a clone of the source mesh to avoid
-            // the binding cache problem - https://goo.gl/mORHCR
+            // the SMR internal caching problem - https://goo.gl/mORHCR
             _mesh = Instantiate<Mesh>(source);
             _mesh.name = _mesh.name.Substring(0, _mesh.name.Length - 7);
 

@@ -31,22 +31,26 @@
 
             sampler2D _PositionBuffer;
 
+            float4 RetrievePosition(float u)
+            {
+                float4 texcoord = float4(u, 0.5, 0, 0);
+                return float4(tex2Dlod(_PositionBuffer, texcoord).xyz, 1);
+            }
+
             v2f vert(appdata v)
             {
                 float3 uvw = v.position.xyz;
-
-                float3 p0 = tex2Dlod(_PositionBuffer, float4(uvw.x, 0.5, 0, 0)).xyz;
-                float4 p1 = UnityObjectToClipPos(float4(p0, 1));
-                p1.xy += uvw.yz * _ScreenParams.yx * 0.0001;
+                float4 pos = UnityObjectToClipPos(RetrievePosition(uvw.x));
+                pos.xy += uvw.yz * _ScreenParams.yx * 0.0001;
 
                 v2f o;
-                o.position = p1;
+                o.position = pos;
                 return o;
             }
 
             fixed4 frag(v2f i) : SV_Target
             {
-                return half4(1, 0, 0, 0.4);
+                return half4(1, 0, 0, 0.2);
             }
 
             ENDCG
