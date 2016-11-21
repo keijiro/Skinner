@@ -19,6 +19,8 @@ namespace Skinner
 
         #endregion
 
+        #region MonoBehaviour functions
+
         void Start()
         {
             // Create a material just for wrapping the shader.
@@ -67,5 +69,7 @@ namespace Skinner
             _material.SetTexture("_TangentBuffer", _source.tangentBuffer);
             Graphics.DrawMesh(_mesh, Vector3.zero, Quaternion.identity, _material, gameObject.layer, null, 0);
         }
+
+        #endregion
     }
 }
