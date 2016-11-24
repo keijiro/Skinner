@@ -1,33 +1,39 @@
+#include "Common.cginc"
+
 sampler2D _PositionBuffer;
-sampler2D _VelocityBuffer;
-half3 _Color;
+sampler2D _BasisBuffer;
 
 struct Input
 {
-    half alpha;
-    half3 emission;
+    half dummy;
 };
 
 void vert(inout appdata_full v, out Input data)
 {
     UNITY_INITIALIZE_OUTPUT(Input, data);
 
-    float2 uv = v.vertex.xy;
+    float4 uv = float4(v.vertex.xy, 0, 0);
 
-    float3 pos = tex2Dlod(_PositionBuffer, float4(uv, 0, 0));
-    float3 vel = tex2Dlod(_VelocityBuffer, float4(uv, 0, 0));
+    // position
+    float3 pos = tex2Dlod(_PositionBuffer, uv);
 
-    v.vertex.xyz = pos;
+    // Normal/Binormal
+    float4 basis = tex2Dlod(_BasisBuffer, uv);
+    float3 normal = StereoInverseProjection(basis.xy);
+    float3 binormal = StereoInverseProjection(basis.zw);
 
-    data.alpha = 1 - uv.y;
-    data.emission = lerp(half3(0.04, 0.04, 0.4), half3(1.4, 1.3, 1), length(vel) * 0.5);
+#if defined(NORMAL_FLIP)
+    normal = -normal;
+#endif
+
+    // Modify the vertex.
+    v.vertex = float4(pos + binormal * 0.02 * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
+    v.normal = normal;
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)
 {
-    o.Alpha = IN.alpha * 0.5;
-    o.Albedo = 0;
+    o.Albedo = 1;
     o.Smoothness = 0;
     o.Metallic = 0;
-    o.Emission = IN.emission;
 }

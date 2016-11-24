@@ -1,11 +1,10 @@
-Shader "Hidden/Skinner/Trail/Kernels"
+Shader "Hidden/Skinner/Point/Kernels"
 {
     Properties
     {
-        _PositionBuffer("", 2D) = ""{}
-        _NewPositionBuffer("", 2D) = ""{}
+        _PositionBuffer0("", 2D) = ""{}
+        _PositionBuffer1("", 2D) = ""{}
         _VelocityTex("", 2D) = ""{}
-        _BasisBuffer("", 2D) = ""{}
     }
     SubShader
     {
@@ -15,7 +14,7 @@ Shader "Hidden/Skinner/Trail/Kernels"
             #pragma vertex vert_img
             #pragma fragment InitializeVelocityFragment
             #pragma target 3.0
-            #include "TrailKernels.cginc"
+            #include "ParticleKernels.cginc"
             ENDCG
         }
         Pass
@@ -24,16 +23,7 @@ Shader "Hidden/Skinner/Trail/Kernels"
             #pragma vertex vert_img
             #pragma fragment InitializePositionFragment
             #pragma target 3.0
-            #include "TrailKernels.cginc"
-            ENDCG
-        }
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert_img
-            #pragma fragment InitializeBasisFragment
-            #pragma target 3.0
-            #include "TrailKernels.cginc"
+            #include "ParticleKernels.cginc"
             ENDCG
         }
         Pass
@@ -42,7 +32,7 @@ Shader "Hidden/Skinner/Trail/Kernels"
             #pragma vertex vert_img
             #pragma fragment UpdateVelocityFragment
             #pragma target 3.0
-            #include "TrailKernels.cginc"
+            #include "ParticleKernels.cginc"
             ENDCG
         }
         Pass
@@ -51,16 +41,7 @@ Shader "Hidden/Skinner/Trail/Kernels"
             #pragma vertex vert_img
             #pragma fragment UpdatePositionFragment
             #pragma target 3.0
-            #include "TrailKernels.cginc"
-            ENDCG
-        }
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert_img
-            #pragma fragment UpdateBasisFragment
-            #pragma target 3.0
-            #include "TrailKernels.cginc"
+            #include "ParticleKernels.cginc"
             ENDCG
         }
     }
