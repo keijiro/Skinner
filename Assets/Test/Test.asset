@@ -92,13 +92,13 @@ MonoBehaviour:
       logMin: -8
       logMax: 4
   bloom:
-    m_Enabled: 0
+    m_Enabled: 1
     m_Settings:
       bloom:
         intensity: 0.5
-        threshold: 1.1
+        threshold: 1
         softKnee: 0.5
-        radius: 4
+        radius: 7
         antiFlicker: 0
       lensDirt:
         texture: {fileID: 0}
