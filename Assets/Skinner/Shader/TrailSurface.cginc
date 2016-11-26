@@ -27,13 +27,13 @@ void vert(inout appdata_full v, out Input data)
 #endif
 
     // Modify the vertex.
-    v.vertex = float4(pos + binormal * 0.02 * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
+    v.vertex = float4(pos + binormal * 0.01 * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
     v.normal = normal;
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)
 {
-    o.Albedo = 1;
-    o.Smoothness = 0;
-    o.Metallic = 0;
+    o.Albedo = float3(0.2, 0.2, 1);
+    o.Smoothness = 0.7;
+    o.Metallic = 0.5;
 }

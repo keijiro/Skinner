@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Skinner
 {
@@ -168,7 +169,8 @@ namespace Skinner
 
             Graphics.DrawMesh(
                 _mesh, Vector3.zero, Quaternion.identity,
-                _trailMaterial, gameObject.layer, null, 0
+                _trailMaterial, gameObject.layer, null, 0,
+                null, ShadowCastingMode.On, true
             );
 
             _frameCount++;
