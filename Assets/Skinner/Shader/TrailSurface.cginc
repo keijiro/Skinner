@@ -42,7 +42,7 @@ void vert(inout appdata_full v, out Input data)
 
 void surf(Input IN, inout SurfaceOutputStandard o)
 {
-    o.Albedo = float3(0.05, 0.05, 0.05);
+    o.Albedo = 0.4;//float3(0.05, 0.05, 0.05);
     o.Smoothness = 0.5;
     o.Metallic = 0.5;
     o.Emission = IN.color;

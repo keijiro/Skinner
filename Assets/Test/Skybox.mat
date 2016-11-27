@@ -90,7 +90,7 @@ Material:
       second: 0
     - first:
         name: _Exposure
-      second: 0.6
+      second: 0.2
     - first:
         name: _Glossiness
       second: 0.5
