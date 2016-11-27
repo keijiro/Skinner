@@ -10,6 +10,22 @@ float UVRandom(float2 uv, float salt)
     return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
 }
 
+// Quaternion multiplication
+// http://mathworld.wolfram.com/Quaternion.html
+float4 QMult(float4 q1, float4 q2)
+{
+    float3 ijk = q2.xyz * q1.w + q1.xyz * q2.w + cross(q1.xyz, q2.xyz);
+    return float4(ijk, q1.w * q2.w - dot(q1.xyz, q2.xyz));
+}
+
+// Vector rotation with a quaternion
+// http://mathworld.wolfram.com/Quaternion.html
+float3 RotateVector(float3 v, float4 r)
+{
+    float4 r_c = r * float4(-1, -1, -1, 1);
+    return QMult(r, QMult(float4(v, 0), r_c)).xyz;
+}
+
 // Stereographic projection and inverse projection
 float2 StereoProjection(float3 n)
 {

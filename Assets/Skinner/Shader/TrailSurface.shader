@@ -3,7 +3,6 @@ Shader "Skinner/Trail"
     Properties
     {
         _PositionBuffer("", 2D) = ""{}
-        _NewPositionBuffer("", 2D) = ""{}
         _VelocityTex("", 2D) = ""{}
         _BasisBuffer("", 2D) = ""{}
     }
