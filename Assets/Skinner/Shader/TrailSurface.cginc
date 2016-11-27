@@ -26,17 +26,18 @@ void vert(inout appdata_full v, out Input data)
     float3 normal = StereoInverseProjection(basis.xy);
     float3 binormal = StereoInverseProjection(basis.zw);
 
-    float intensity = pow(min(length(vel) * 0.3, 1), 4);
+    float intensity = saturate(length(vel) * 0.3);
 
 #if defined(NORMAL_FLIP)
     normal = -normal;
 #endif
 
     // Modify the vertex.
-    v.vertex = float4(pos + binormal * (0.01 + intensity * 0.02) * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
+    v.vertex = float4(pos + binormal * (0.08 * intensity) * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
     v.normal = normal;
 
-    v.color.rgb = half3(0.5, 0.5, 3.5) * intensity;
+    //v.color.rgb = half3(saturate(intensity * 2 - 1), saturate(2 - intensity * 2), 3.2) * pow(intensity, 4) * smoothstep(0.5, 1, intensity);
+    v.color.rgb = HueToRGB(saturate(intensity * 2 - 1) * 0.5 + 0.6) * 1.2 * pow(intensity, 4) * smoothstep(0.5, 1, intensity);
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)

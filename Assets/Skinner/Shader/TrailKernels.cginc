@@ -37,10 +37,12 @@ float4 UpdateVelocityFragment(v2f_img i) : SV_Target
     if (i.uv.y <= dv)
     {
         // The first row: calculate the vertex velocity.
+        // Get the average with the previous frame for low-pass filtering.
         float3 p0 = tex2D(_PositionBuffer, i.uv.xy).xyz;
         float3 p1 = tex2D(_NewPositionBuffer, i.uv.xy).xyz;
-        float3 v = (p1 - p0) * unity_DeltaTime.y;
-        return float4(v, 0);
+        float3 v0 = tex2D(_VelocityBuffer, i.uv.xy).xyz;
+        float3 v1 = (p1 - p0) * unity_DeltaTime.y;
+        return float4(0.5 * (v0 + v1), 0);
     }
     else
     {
@@ -98,6 +100,9 @@ float4 UpdateBasisFragment(v2f_img i) : SV_Target
     // Reconstruct the orthonormal basis.
     float3 ay = normalize(cross(az, ax));
     ax = normalize(cross(ay, az));
+
+    // Twisting
+    ax = normalize(ax + 0.2 * frac(i.uv.x * 3333.33) * ay * (1 - i.uv.y));
 
     return float4(StereoProjection(ay), StereoProjection(ax));
 }

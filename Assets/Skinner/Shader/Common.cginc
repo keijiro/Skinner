@@ -21,3 +21,18 @@ float3 StereoInverseProjection(float2 p)
     float d = 2 / (dot(p.xy, p.xy) + 1);
     return float3(p.xy * d, 1 - d);
 }
+
+// Hue to RGB convertion
+half3 HueToRGB(half h)
+{
+    h = frac(h);
+    half r = abs(h * 6 - 3) - 1;
+    half g = 2 - abs(h * 6 - 2);
+    half b = 2 - abs(h * 6 - 4);
+    half3 rgb = saturate(half3(r, g, b));
+#if UNITY_COLORSPACE_GAMMA
+    return rgb;
+#else
+    return GammaToLinearSpace(rgb);
+#endif
+}
