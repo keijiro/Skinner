@@ -125,7 +125,7 @@ namespace Skinner
             if (_mesh != null) Destroy(_mesh);
         }
 
-        void Update()
+        void LateUpdate()
         {
             var swap = (_frameCount & 1) != 0;
             var pb0 = swap ? _positionBuffer1 : _positionBuffer0;

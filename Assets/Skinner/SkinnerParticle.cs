@@ -366,7 +366,7 @@ namespace Skinner
             ReleaseTemporaryObjects();
         }
 
-        void Update()
+        void LateUpdate()
         {
             // Do nothing if no template is set.
             if (_template == null) return;

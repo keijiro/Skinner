@@ -97,6 +97,7 @@ namespace Skinner
             _camera.orthographicSize = 100;
 
             _camera.SetReplacementShader(_replacementShader, "Skinner");
+            _camera.enabled = false;
 
             // Add a culling state controller to hide this object from other cameras.
             var culler = go.AddComponent<CullingStateController>();
@@ -161,6 +162,8 @@ namespace Skinner
                 _camera.SetTargetBuffers(_mrt1, _positionBuffer1.depthBuffer);
             else
                 _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
+
+            _camera.Render();
         }
 
         #endregion
