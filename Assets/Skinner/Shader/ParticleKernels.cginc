@@ -88,7 +88,7 @@ float4 UpdatePositionFragment(v2f_img i) : SV_Target
     float3 v = tex2D(_VelocityBuffer, i.uv).xyz;
 
     float lv = length(v);
-    if (lv > 0.1) v = normalize(v) * min(lv, 0.5);
+    if (lv > 0.1) v = normalize(v) * min(lv, 1);
 
     // Decaying
     float dt = _Config.y;
