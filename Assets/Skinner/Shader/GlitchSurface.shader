@@ -1,4 +1,4 @@
-Shader "Hidden/Skinner/Glitch"
+Shader "Hidden/Skinner/Glitch/Surface"
 {
     Properties
     {

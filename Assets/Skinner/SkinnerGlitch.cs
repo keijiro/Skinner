@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace Skinner
 {
@@ -29,11 +30,15 @@ namespace Skinner
         #region Private members
 
         // References to the built-in assets
-        [SerializeField] Shader _shader;
+        [SerializeField] Shader _kernelsShader;
+        [SerializeField] Shader _surfaceShader;
 
         // Temporary objects
         Mesh _mesh;
-        Material _material;
+        Material _kernelsMaterial;
+        Material _surfaceMaterial;
+        RenderTexture _positionBuffer1;
+        RenderTexture _positionBuffer2;
 
         // Custom properties applied to the mesh renderer.
         MaterialPropertyBlock _propertyBlock;
@@ -43,17 +48,23 @@ namespace Skinner
         {
             var vcount = 21845 * 3; // 66535
             var vertices = new Vector3[vcount];
+            var uvs = new List<Vector4>(vcount);
             var indices = new int[vcount];
 
             for (var i = 0; i < vcount; i += 3)
             {
-                float u0 = (i + 0.5f) / vcount;
-                float u1 = (i + 1.5f) / vcount;
-                float u2 = (i + 2.5f) / vcount;
+                float u0 = Random.value;
+                float u1 = Random.value;
+                float u2 = Random.value;
+                float u3 = Random.value;
 
                 vertices[i + 0] = new Vector3(u0, u1, u2);
                 vertices[i + 1] = new Vector3(u1, u2, u0);
                 vertices[i + 2] = new Vector3(u2, u0, u1);
+
+                uvs.Add(new Vector4(u0, u1, u2, u3));
+                uvs.Add(new Vector4(u1, u2, u0, u3));
+                uvs.Add(new Vector4(u2, u0, u1, u3));
 
                 indices[i + 0] = i + 0;
                 indices[i + 1] = i + 1;
@@ -63,6 +74,7 @@ namespace Skinner
             var mesh = new Mesh();
             mesh.name = "Glitch";
             mesh.vertices = vertices;
+            mesh.SetUVs(0, uvs);
             mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
             mesh.Optimize();
@@ -71,23 +83,42 @@ namespace Skinner
             return mesh;
         }
 
+        // Create a buffer for simulation.
+        RenderTexture CreateSimulationBuffer()
+        {
+            var format = RenderTextureFormat.ARGBFloat;
+            var buffer = new RenderTexture(_source.model.vertexCount, 64, 0, format);
+            buffer.hideFlags = HideFlags.HideAndDontSave;
+            buffer.filterMode = FilterMode.Point;
+            buffer.wrapMode = TextureWrapMode.Repeat;
+            return buffer;
+        }
+
         // Try to release a temporary object.
         void ReleaseObject(Object o)
         {
             if (o != null)
+            {
                 if (Application.isPlaying)
                     Destroy(o);
                 else
                     DestroyImmediate(o);
+            }
         }
 
         // Create and initialize internal temporary objects.
         void SetUpTemporaryObjects()
         {
-            if (_material == null)
+            if (_kernelsMaterial == null)
             {
-                _material = new Material(Shader.Find("Hidden/Skinner/Glitch"));
-                _material.hideFlags = HideFlags.HideAndDontSave;
+                _kernelsMaterial = new Material(Shader.Find("Hidden/Skinner/Glitch/Kernels"));
+                _kernelsMaterial.hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            if (_surfaceMaterial == null)
+            {
+                _surfaceMaterial = new Material(Shader.Find("Hidden/Skinner/Glitch/Surface"));
+                _surfaceMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 
             if (_mesh == null)
@@ -95,16 +126,59 @@ namespace Skinner
                 _mesh = CreateBulkMesh();
                 _mesh.hideFlags = HideFlags.HideAndDontSave;
             }
+
+            if (_positionBuffer1 == null)
+                _positionBuffer1 = CreateSimulationBuffer();
+
+            if (_positionBuffer2 == null)
+                _positionBuffer2 = CreateSimulationBuffer();
         }
 
         // Release internal temporary objects.
         void ReleaseTemporaryObjects()
         {
-            ReleaseObject(_material);
-            _material = null;
+            ReleaseObject(_kernelsMaterial);
+            _kernelsMaterial = null;
+
+            ReleaseObject(_surfaceMaterial);
+            _surfaceMaterial = null;
 
             ReleaseObject(_mesh);
             _mesh = null;
+
+            ReleaseObject(_positionBuffer1);
+            _positionBuffer1 = null;
+
+            ReleaseObject(_positionBuffer2);
+            _positionBuffer2 = null;
+        }
+
+        // Reset the simulation state.
+        void ResetSimulationState()
+        {
+            Graphics.Blit(null, _positionBuffer2, _kernelsMaterial, 0);
+        }
+
+        // Update the parameters in the simulation kernels.
+        void UpdateSimulationParameters(float dt)
+        {
+            _kernelsMaterial.SetFloat("_RandomSeed", _randomSeed);
+        }
+
+        // Invoke the simulation kernels.
+        void InvokeSimulationKernels(float dt)
+        {
+            // Swap the buffers.
+            var tempPosition = _positionBuffer1;
+            _positionBuffer1 = _positionBuffer2;
+            _positionBuffer2 = tempPosition;
+
+            // Source position information
+            _kernelsMaterial.SetTexture("_SourcePositionBuffer", _source.positionBuffer);
+
+            // Invoke the position update kernel.
+            UpdateSimulationParameters(dt);
+            Graphics.Blit(_positionBuffer1, _positionBuffer2, _kernelsMaterial, 1);
         }
 
         // Update external component: mesh filter
@@ -131,14 +205,15 @@ namespace Skinner
             if (_propertyBlock == null)
                 _propertyBlock = new MaterialPropertyBlock();
 
-            _propertyBlock.SetTexture("_PositionBuffer", _source.positionBuffer);
+            _propertyBlock.SetTexture("_PositionBuffer", _positionBuffer2);
             _propertyBlock.SetFloat("_RandomSeed", _randomSeed);
+            _propertyBlock.SetFloat("_Offset", Time.frameCount);
 
             meshRenderer.SetPropertyBlock(_propertyBlock);
 
             // Set the material if no material is set.
             if (meshRenderer.sharedMaterial == null)
-                meshRenderer.sharedMaterial = _material;
+                meshRenderer.sharedMaterial = _surfaceMaterial;
         }
 
         #endregion
@@ -156,7 +231,14 @@ namespace Skinner
             if (_source == null) return;
 
             // Initialize the temporary objects if not yet.
-            SetUpTemporaryObjects();
+            if (_mesh == null)
+            {
+                SetUpTemporaryObjects();
+                ResetSimulationState();
+            }
+
+            // Advance simulation time.
+            InvokeSimulationKernels(Time.deltaTime);
 
             // Update external components (mesh filter and renderer).
             UpdateMeshFilter();
