@@ -168,10 +168,10 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 233046234}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.06104851, y: 0, z: 0, w: 0.99813485}
+  m_LocalPosition: {x: 0, y: -0.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 7, y: 0, z: 0}
   m_Children:
   - {fileID: 359218686}
   m_Father: {fileID: 532241503}
@@ -210,9 +210,9 @@ MonoBehaviour:
   _positionFrequency: 0.2
   _rotationFrequency: 0.12
   _positionAmplitude: 0.5
-  _rotationAmplitude: 50
+  _rotationAmplitude: 120
   _positionScale: {x: 1, y: 1, z: 1}
-  _rotationScale: {x: 0, y: 1, z: 0}
+  _rotationScale: {x: 0.12, y: 1, z: 0}
   _positionFractalLevel: 3
   _rotationFractalLevel: 2
 --- !u!1 &290262690
@@ -334,7 +334,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 359218685}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5}
+  m_LocalPosition: {x: 0, y: 0, z: -4.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children:
@@ -354,9 +354,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _enablePositionNoise: 1
   _enableRotationNoise: 0
-  _positionFrequency: 0.15
+  _positionFrequency: 0.27
   _rotationFrequency: 0.2
-  _positionAmplitude: 1
+  _positionAmplitude: 1.2
   _rotationAmplitude: 10
   _positionScale: {x: 0, y: 0, z: 3}
   _rotationScale: {x: 1, y: 1, z: 0}
@@ -391,7 +391,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolator: 2
   _target: {fileID: 218083612}
-  _positionSpeed: 5
+  _positionSpeed: 10
   _rotationSpeed: 0
   _jumpDistance: 1
   _jumpAngle: 60
@@ -534,7 +534,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 100
-  field of view: 12
+  field of view: 18
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -646,7 +646,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!33 &874903610
 MeshFilter:
   m_ObjectHideFlags: 8
@@ -691,7 +691,7 @@ MonoBehaviour:
   _noiseFrequency: 0.5
   _noiseMotion: 1
   _template: {fileID: 11400000, guid: 2d687eaea768ef94b9c5547a00075b42, type: 2}
-  _scale: 0.5
+  _scale: 0.19
   _scaleRandomness: 0.5
   _randomSeed: 0
   _kernels: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
@@ -823,7 +823,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1322369290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1050,7 +1050,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 13700002, guid: 6fa17527186bbd546b845faf6311064e, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 13700002, guid: 6fa17527186bbd546b845faf6311064e, type: 3}
       propertyPath: m_Materials.Array.data[0]

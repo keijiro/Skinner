@@ -43,7 +43,7 @@ namespace Skinner
             _trailMaterial = new Material(_trailShader);
 
             // Double position/velocity buffer
-            var tw = _source.model.vertexCount / 2;
+            var tw = _source.model.vertexCount / 1;
             var th = 65536 / 2 / tw;
             var format = RenderTextureFormat.ARGBFloat;
 

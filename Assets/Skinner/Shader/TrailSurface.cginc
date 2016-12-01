@@ -33,7 +33,7 @@ void vert(inout appdata_full v, out Input data)
 #endif
 
     // Modify the vertex.
-    v.vertex = float4(pos + binormal * (0.08 * intensity) * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
+    v.vertex = float4(pos + binormal * (0.04 * intensity) * v.vertex.z * (1 - v.vertex.y), v.vertex.w);
     v.normal = normal;
 
     //v.color.rgb = half3(saturate(intensity * 2 - 1), saturate(2 - intensity * 2), 3.2) * pow(intensity, 4) * smoothstep(0.5, 1, intensity);
