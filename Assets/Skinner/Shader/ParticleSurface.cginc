@@ -51,7 +51,7 @@ void vert(inout appdata_full v)
     v.tangent.xyz = RotateVector(v.tangent.xyz, rot);
 #endif
     //v.color.xyz = lerp(half3(1.04, 0.04, 0.0), half3(3.4, 2.0, 1), length(vel) * 0.5);
-    v.color.rgb = HueToRGB(intensity * 0.5 + 0.6) * 1.2 * pow(intensity, 3);
+    v.color.rgb = HueToRGB(intensity * 0.5 + 0.8) * 1.2 * pow(intensity, 3);
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)

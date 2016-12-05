@@ -34,13 +34,13 @@ float UVRandom(float2 uv, float salt)
 		fixed4 _Color;
 
 		void surf (Input IN, inout SurfaceOutputStandard o) {
-            clip(UVRandom(floor(o.Normal.xy * 20), floor(o.Normal.z * 20)) - 0.9);
+            clip(UVRandom(floor(o.Normal.xy * 20), floor(o.Normal.z * 20)) - 0.88);
 			// Albedo comes from a texture tinted by color
 			o.Albedo = 0;
 			// Metallic and smoothness come from slider variables
 			o.Metallic = 0;
 			o.Smoothness = 0;
-            o.Emission = float3(0.3, 0.4, 0.6);
+            o.Emission = float3(0.3, 0.4, 0.9);
 		}
 		ENDCG
 	}

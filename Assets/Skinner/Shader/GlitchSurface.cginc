@@ -43,16 +43,16 @@ void vert(inout appdata_full v)
     float s1 = length(p2 - p1);
     float s2 = length(p0 - p2);
 
-    float th1 = 0.25 + 0*sin(_Time.y * 3) * 0.1;
-    float th2 = 0.00003 - 0*sin(_Time.y * 4) * 0.00001;
+    delta = 1 - pow(1 - frac(delta), 3);
+
+    float th1 = 0.28;
+    float th2 = 0.00004;
 
     float cond1 = (s0 < th1) * (s1 < th1) * (s2 < th1);
     float cond2 = TriangleArea(s0, s1, s2) < th2;
 
-    delta = 1 - pow(1 - frac(delta), 3);
-
     //v.vertex.xyz = cond1 + cond2 > 0 ? lerp(p0, c, 0.2 * smoothstep(0.2, 0.3, delta) + 0.8 * smoothstep(0.9, 1, delta)) : c;
-    v.vertex.xyz = cond1 + cond2 > 0 ? lerp(p0, c, smoothstep(0.2, 1, delta)) : c;
+    v.vertex.xyz = cond1 + cond2 > 0 ? lerp(p0, c, smoothstep(0.2, 1.0, delta)) : c;
     v.normal = n;
 
     v.color += pow(1 - delta, 18) * float4(1, 0, 0, 0);

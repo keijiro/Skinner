@@ -39,6 +39,8 @@ namespace Skinner
         Material _surfaceMaterial;
         RenderTexture _positionBuffer1;
         RenderTexture _positionBuffer2;
+        RenderTexture _velocityBuffer1;
+        RenderTexture _velocityBuffer2;
 
         // Custom properties applied to the mesh renderer.
         MaterialPropertyBlock _propertyBlock;
@@ -87,7 +89,7 @@ namespace Skinner
         RenderTexture CreateSimulationBuffer()
         {
             var format = RenderTextureFormat.ARGBFloat;
-            var buffer = new RenderTexture(_source.model.vertexCount, 64, 0, format);
+            var buffer = new RenderTexture(_source.model.vertexCount, 256, 0, format);
             buffer.hideFlags = HideFlags.HideAndDontSave;
             buffer.filterMode = FilterMode.Point;
             buffer.wrapMode = TextureWrapMode.Repeat;
@@ -132,6 +134,12 @@ namespace Skinner
 
             if (_positionBuffer2 == null)
                 _positionBuffer2 = CreateSimulationBuffer();
+
+            if (_velocityBuffer1 == null)
+                _velocityBuffer1 = CreateSimulationBuffer();
+
+            if (_velocityBuffer2 == null)
+                _velocityBuffer2 = CreateSimulationBuffer();
         }
 
         // Release internal temporary objects.
@@ -151,12 +159,19 @@ namespace Skinner
 
             ReleaseObject(_positionBuffer2);
             _positionBuffer2 = null;
+
+            ReleaseObject(_velocityBuffer1);
+            _velocityBuffer1 = null;
+
+            ReleaseObject(_velocityBuffer2);
+            _velocityBuffer2 = null;
         }
 
         // Reset the simulation state.
         void ResetSimulationState()
         {
             Graphics.Blit(null, _positionBuffer2, _kernelsMaterial, 0);
+            Graphics.Blit(null, _velocityBuffer2, _kernelsMaterial, 0);
         }
 
         // Update the parameters in the simulation kernels.
@@ -170,15 +185,27 @@ namespace Skinner
         {
             // Swap the buffers.
             var tempPosition = _positionBuffer1;
+            var tempVelocity = _velocityBuffer1;
+
             _positionBuffer1 = _positionBuffer2;
+            _velocityBuffer1 = _velocityBuffer2;
+
             _positionBuffer2 = tempPosition;
+            _velocityBuffer2 = tempVelocity;
 
             // Source position information
-            _kernelsMaterial.SetTexture("_SourcePositionBuffer", _source.positionBuffer);
+            _kernelsMaterial.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
+            _kernelsMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
 
             // Invoke the position update kernel.
             UpdateSimulationParameters(dt);
-            Graphics.Blit(_positionBuffer1, _positionBuffer2, _kernelsMaterial, 1);
+            _kernelsMaterial.SetTexture("_PositionBuffer", _positionBuffer1);
+            _kernelsMaterial.SetTexture("_VelocityBuffer", _velocityBuffer1);
+            Graphics.Blit(null, _positionBuffer2, _kernelsMaterial, 2);
+
+            // Invoke the velocity update kernel.
+            _kernelsMaterial.SetTexture("_PositionBuffer", _positionBuffer2);
+            Graphics.Blit(null, _velocityBuffer2, _kernelsMaterial, 3);
         }
 
         // Update external component: mesh filter
@@ -206,6 +233,7 @@ namespace Skinner
                 _propertyBlock = new MaterialPropertyBlock();
 
             _propertyBlock.SetTexture("_PositionBuffer", _positionBuffer2);
+            _propertyBlock.SetTexture("_VelocityBuffer", _velocityBuffer2);
             _propertyBlock.SetFloat("_RandomSeed", _randomSeed);
             _propertyBlock.SetFloat("_Offset", Time.frameCount);
 

@@ -232,7 +232,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!33 &290262691
 MeshFilter:
   m_ObjectHideFlags: 8
@@ -264,7 +264,7 @@ MonoBehaviour:
   _noiseFrequency: 0.5
   _noiseMotion: 1
   _template: {fileID: 11400000, guid: 2d687eaea768ef94b9c5547a00075b42, type: 2}
-  _scale: 0.5
+  _scale: 0.3
   _scaleRandomness: 0.5
   _randomSeed: 2
   _kernels: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
@@ -691,7 +691,7 @@ MonoBehaviour:
   _noiseFrequency: 0.5
   _noiseMotion: 1
   _template: {fileID: 11400000, guid: 2d687eaea768ef94b9c5547a00075b42, type: 2}
-  _scale: 0.19
+  _scale: 0.3
   _scaleRandomness: 0.5
   _randomSeed: 0
   _kernels: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
