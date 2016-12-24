@@ -86,7 +86,6 @@ namespace Skinner
             _mesh.SetIndices(indices, MeshTopology.Points, 0);
 
             // Finishing up.
-            _mesh.Optimize();
             _mesh.UploadMeshData(true);
 
             // Store the vertex count.

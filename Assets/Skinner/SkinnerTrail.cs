@@ -104,7 +104,6 @@ namespace Skinner
             _mesh.vertices = vertices;
             _mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             _mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
-            _mesh.Optimize();
             _mesh.UploadMeshData(true);
         }
 

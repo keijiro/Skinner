@@ -79,7 +79,6 @@ namespace Skinner
             mesh.SetUVs(0, uvs);
             mesh.SetIndices(indices, MeshTopology.Triangles, 0);
             mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
-            mesh.Optimize();
             mesh.UploadMeshData(true);
 
             return mesh;
