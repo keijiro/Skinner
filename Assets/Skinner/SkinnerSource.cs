@@ -9,13 +9,13 @@ namespace Skinner
 
         [SerializeField] SkinnerModel _model;
 
-        public SkinnerModel model {
-            get { return _model; }
-        }
-
         #endregion
 
         #region Public property (runtime only)
+
+        public int vertexCount {
+            get { return _model != null ? _model.vertexCount : 0; }
+        }
 
         public RenderTexture positionBuffer {
             get { return _swapFlag ? _positionBuffer1 : _positionBuffer0; }
@@ -52,6 +52,7 @@ namespace Skinner
         RenderBuffer[] _mrt0;
         RenderBuffer[] _mrt1;
         bool _swapFlag;
+        float _prevDelta;
 
         // Create a render texture used as a vector buffer.
         RenderTexture CreateBuffer()
@@ -164,6 +165,9 @@ namespace Skinner
                 _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
 
             _camera.Render();
+
+            Shader.SetGlobalVector("_Skinner_DeltaTime", new Vector2(_prevDelta, 1.0f / _prevDelta));
+            _prevDelta = Time.deltaTime;
         }
 
         #endregion

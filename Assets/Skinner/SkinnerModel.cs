@@ -4,18 +4,23 @@ using System.Linq;
 
 namespace Skinner
 {
+    /// A serializable class holding a preprocessed vertex array.
     public class SkinnerModel : ScriptableObject
     {
+        // This is basically a skinned mesh object without topological
+        // infomation. The vertex array in the mesh is optimized for Skinner
+        // renderers (e.g. overlapped vertices removal).
+
         #region Public properties
 
-        /// Number of vertices (read only)
+        /// Number of vertices (read only).
         public int vertexCount {
             get { return _vertexCount; }
         }
 
         [SerializeField] int _vertexCount;
 
-        /// Mesh of vertices (read only)
+        /// Preprocessed vertex array as a mesh (read only).
         public Mesh mesh {
             get { return _mesh; }
         }

@@ -88,7 +88,7 @@ namespace Skinner
         RenderTexture CreateSimulationBuffer()
         {
             var format = RenderTextureFormat.ARGBFloat;
-            var buffer = new RenderTexture(_source.model.vertexCount, 256, 0, format);
+            var buffer = new RenderTexture(_source.vertexCount, 256, 0, format);
             buffer.hideFlags = HideFlags.HideAndDontSave;
             buffer.filterMode = FilterMode.Point;
             buffer.wrapMode = TextureWrapMode.Repeat;

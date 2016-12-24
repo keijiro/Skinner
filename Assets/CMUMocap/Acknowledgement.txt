@@ -1,0 +1,15 @@
+CMUMocap
+--------
+
+This directory contains humanoid animations that are converted from the
+Carnegie Mellon University Motion Capture Database.
+
+These animations are basically free to use for commercial and non-commercial
+purposes. See the CMU page below for further information.
+
+http://mocap.cs.cmu.edu/
+
+The conversion work is done by Keijiro Takahashi. You can obtain the latest
+package from the GitHub repository below.
+
+https://github.com/keijiro/CMUMocap

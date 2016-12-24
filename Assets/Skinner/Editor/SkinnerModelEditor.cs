@@ -28,22 +28,34 @@ namespace Skinner
             }
         }
 
-        [MenuItem("Assets/Skinner/Convert Model", true)]
+        static bool CheckSkinned(Mesh mesh)
+        {
+            if (mesh.boneWeights.Length > 0) return true;
+            Debug.LogError(
+                "The given mesh (" + mesh.name + ") is not skinned. " +
+                "Skinner only can handle skinned meshes."
+            );
+            return false;
+        }
+
+        [MenuItem("Assets/Skinner/Convert Mesh", true)]
         static bool ValidateAssets()
         {
             return SelectedMeshAssets.Length > 0;
         }
 
-        [MenuItem("Assets/Skinner/Convert Model")]
+        [MenuItem("Assets/Skinner/Convert Mesh")]
         static void ConvertAssets()
         {
             var converted = new List<Object>();
 
             foreach (var source in SelectedMeshAssets)
             {
+                if (!CheckSkinned(source)) continue;
+
                 // Destination file path.
                 var dirPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(source));
-                var assetPath = AssetDatabase.GenerateUniqueAssetPath(dirPath + "/Skinner Model.asset");
+                var assetPath = AssetDatabase.GenerateUniqueAssetPath(dirPath + "/New Skinner Model.asset");
 
                 // Create a skinner model asset.
                 var asset = ScriptableObject.CreateInstance<SkinnerModel>();
