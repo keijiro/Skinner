@@ -1,94 +1,100 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 namespace Skinner
 {
-    [RequireComponent(typeof(MeshRenderer))]
+    /// Emits glitchy triangles from the given Skinner source.
     [AddComponentMenu("Skinner/Glitch")]
+    [RequireComponent(typeof(MeshRenderer))]
     public class SkinnerGlitch : MonoBehaviour
     {
-        #region Editable properties
+        #region Public properties
 
-        [SerializeField] SkinnerSource _source;
+        /// Reference to an effect source.
+        public SkinnerSource source {
+            get { return _source; }
+            set { _source = value; _reconfigured = true; }
+        }
 
-        [SerializeField, Range(0, 1)] float _throttle = 1.0f;
+        [SerializeField]
+        [Tooltip("Reference to an effect source.")]
+        SkinnerSource _source;
 
+        /// Length of the frame history.
+        public int historyLength {
+            get { return _historyLength; }
+            set { _historyLength = value; _reconfigured = true; }
+        }
+
+        [SerializeField]
+        [Tooltip("Length of the frame history.")]
+        int _historyLength = 256;
+
+        /// Used for generate random numbers for the effect.
+        public int randomSeed {
+            get { return _randomSeed; }
+            set { _randomSeed = value; _reconfigured = true; }
+        }
+
+        [SerializeField]
+        [Tooltip("Used for generate random numbers for the effect.")]
+        int _randomSeed = 0;
+
+        /// Controls the appearance rate of effect elements.
         public float throttle {
             get { return _throttle; }
             set { _throttle = value; }
         }
 
-        [SerializeField] int _randomSeed = 0;
+        [SerializeField, Range(0, 1)]
+        [Tooltip("Controls the appearance rate of effect elements.")]
+        float _throttle = 1.0f;
 
-        public int randomSeed {
-            get { return _randomSeed; }
-            set { _randomSeed = value; }
-        }
+        [SerializeField, Range(0, 1)]
+        float _velocityScale = 0.2f;
 
         #endregion
 
-        #region Private members
+        #region Public methods
 
-        // References to the built-in assets
-        [SerializeField] Shader _kernelsShader;
-        [SerializeField] Shader _surfaceShader;
+        #if UNITY_EDITOR
 
-        // Temporary objects
-        Mesh _mesh;
-        Material _kernelsMaterial;
-        Material _surfaceMaterial;
+        /// Notify changes on the configuration.
+        /// This method is only available from Editor.
+        public void UpdateConfiguration()
+        {
+            _reconfigured = true;
+        }
+
+        #endif
+
+        #endregion
+
+        #region Built-in assets
+
+        [SerializeField] SkinnerGlitchTemplate _template;
+        [SerializeField] Shader _kernelShader;
+        [SerializeField] Material _defaultMaterial;
+
+        #endregion
+
+        #region Animation kernels
+
+        // Temporary objects used in the animation kernels.
+        Material _kernelMaterial;
         RenderTexture _positionBuffer1;
         RenderTexture _positionBuffer2;
         RenderTexture _velocityBuffer1;
         RenderTexture _velocityBuffer2;
 
-        // Custom properties applied to the mesh renderer.
-        MaterialPropertyBlock _propertyBlock;
+        // Indicates changes on the configuration.
+        // (temporary objects have to be reset)
+        bool _reconfigured = true;
 
-        // Create a bulk mesh.
-        Mesh CreateBulkMesh()
-        {
-            var vcount = 21845 * 3; // 66535
-            var vertices = new Vector3[vcount];
-            var uvs = new List<Vector4>(vcount);
-            var indices = new int[vcount];
-
-            for (var i = 0; i < vcount; i += 3)
-            {
-                float u0 = Random.value;
-                float u1 = Random.value;
-                float u2 = Random.value;
-                float u3 = Random.value;
-
-                vertices[i + 0] = new Vector3(u0, u1, u2);
-                vertices[i + 1] = new Vector3(u1, u2, u0);
-                vertices[i + 2] = new Vector3(u2, u0, u1);
-
-                uvs.Add(new Vector4(u0, u1, u2, u3));
-                uvs.Add(new Vector4(u1, u2, u0, u3));
-                uvs.Add(new Vector4(u2, u0, u1, u3));
-
-                indices[i + 0] = i + 0;
-                indices[i + 1] = i + 1;
-                indices[i + 2] = i + 2;
-            }
-
-            var mesh = new Mesh();
-            mesh.name = "Glitch";
-            mesh.vertices = vertices;
-            mesh.SetUVs(0, uvs);
-            mesh.SetIndices(indices, MeshTopology.Triangles, 0);
-            mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
-            mesh.UploadMeshData(true);
-
-            return mesh;
-        }
-
-        // Create a buffer for simulation.
-        RenderTexture CreateSimulationBuffer()
+        // Create a buffer for animation kernels.
+        RenderTexture CreateBuffer()
         {
             var format = RenderTextureFormat.ARGBFloat;
-            var buffer = new RenderTexture(_source.vertexCount, 256, 0, format);
+            var buffer = new RenderTexture(_source.vertexCount, _historyLength, 0, format);
             buffer.hideFlags = HideFlags.HideAndDontSave;
             buffer.filterMode = FilterMode.Point;
             buffer.wrapMode = TextureWrapMode.Repeat;
@@ -107,80 +113,39 @@ namespace Skinner
             }
         }
 
-        // Create and initialize internal temporary objects.
-        void SetUpTemporaryObjects()
+        // Create and initialize temporary objects used in the animation kernels.
+        void InitializeAnimationKernels()
         {
-            if (_kernelsMaterial == null)
+            if (_kernelMaterial == null)
             {
-                _kernelsMaterial = new Material(Shader.Find("Hidden/Skinner/Glitch/Kernels"));
-                _kernelsMaterial.hideFlags = HideFlags.HideAndDontSave;
+                _kernelMaterial = new Material(Shader.Find("Hidden/Skinner/Glitch/Kernels"));
+                _kernelMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 
-            if (_surfaceMaterial == null)
-            {
-                _surfaceMaterial = new Material(Shader.Find("Hidden/Skinner/Glitch/Surface"));
-                _surfaceMaterial.hideFlags = HideFlags.HideAndDontSave;
-            }
+            _kernelMaterial.SetFloat("_RandomSeed", _randomSeed);
 
-            if (_mesh == null)
-            {
-                _mesh = CreateBulkMesh();
-                _mesh.hideFlags = HideFlags.HideAndDontSave;
-            }
+            if (_positionBuffer1 == null) _positionBuffer1 = CreateBuffer();
+            if (_positionBuffer2 == null) _positionBuffer2 = CreateBuffer();
+            if (_velocityBuffer1 == null) _velocityBuffer1 = CreateBuffer();
+            if (_velocityBuffer2 == null) _velocityBuffer2 = CreateBuffer();
 
-            if (_positionBuffer1 == null)
-                _positionBuffer1 = CreateSimulationBuffer();
-
-            if (_positionBuffer2 == null)
-                _positionBuffer2 = CreateSimulationBuffer();
-
-            if (_velocityBuffer1 == null)
-                _velocityBuffer1 = CreateSimulationBuffer();
-
-            if (_velocityBuffer2 == null)
-                _velocityBuffer2 = CreateSimulationBuffer();
+            // Clear the first buffers.
+            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 0);
+            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 0);
         }
 
-        // Release internal temporary objects.
-        void ReleaseTemporaryObjects()
+        // Release the temporary objects used in the animation kernels.
+        void ReleaseAnimationKernels()
         {
-            ReleaseObject(_kernelsMaterial);
-            _kernelsMaterial = null;
-
-            ReleaseObject(_surfaceMaterial);
-            _surfaceMaterial = null;
-
-            ReleaseObject(_mesh);
-            _mesh = null;
-
-            ReleaseObject(_positionBuffer1);
-            _positionBuffer1 = null;
-
-            ReleaseObject(_positionBuffer2);
-            _positionBuffer2 = null;
-
-            ReleaseObject(_velocityBuffer1);
-            _velocityBuffer1 = null;
-
-            ReleaseObject(_velocityBuffer2);
-            _velocityBuffer2 = null;
+            ReleaseObject(_kernelMaterial); _kernelMaterial = null;
+            ReleaseObject(_positionBuffer1); _positionBuffer1 = null;
+            ReleaseObject(_positionBuffer2); _positionBuffer2 = null;
+            ReleaseObject(_velocityBuffer1); _velocityBuffer1 = null;
+            ReleaseObject(_velocityBuffer2); _velocityBuffer2 = null;
         }
 
-        // Reset the simulation state.
-        void ResetSimulationState()
-        {
-            Graphics.Blit(null, _positionBuffer2, _kernelsMaterial, 0);
-            Graphics.Blit(null, _velocityBuffer2, _kernelsMaterial, 0);
-        }
-
-        // Update the parameters in the simulation kernels.
-        void UpdateSimulationParameters(float dt)
-        {
-            _kernelsMaterial.SetFloat("_RandomSeed", _randomSeed);
-        }
-
-        // Invoke the simulation kernels.
-        void InvokeSimulationKernels(float dt)
+        // Invoke the animation kernels.
+        void InvokeAnimationKernels()
         {
             // Swap the buffers.
             var tempPosition = _positionBuffer1;
@@ -192,20 +157,27 @@ namespace Skinner
             _positionBuffer2 = tempPosition;
             _velocityBuffer2 = tempVelocity;
 
-            // Source position information
-            _kernelsMaterial.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
-            _kernelsMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
+            // Source position attributes.
+            _kernelMaterial.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
+            _kernelMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
 
             // Invoke the position update kernel.
-            UpdateSimulationParameters(dt);
-            _kernelsMaterial.SetTexture("_PositionBuffer", _positionBuffer1);
-            _kernelsMaterial.SetTexture("_VelocityBuffer", _velocityBuffer1);
-            Graphics.Blit(null, _positionBuffer2, _kernelsMaterial, 2);
+            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer1);
+            _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer1);
+            _kernelMaterial.SetFloat("_VelocityScale", _velocityScale);
+            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 2);
 
             // Invoke the velocity update kernel.
-            _kernelsMaterial.SetTexture("_PositionBuffer", _positionBuffer2);
-            Graphics.Blit(null, _velocityBuffer2, _kernelsMaterial, 3);
+            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer2);
+            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 3);
         }
+
+        #endregion
+
+        #region External component control
+
+        // Custom properties applied to the mesh renderer.
+        MaterialPropertyBlock _overrideProps;
 
         // Update external component: mesh filter
         void UpdateMeshFilter()
@@ -219,8 +191,9 @@ namespace Skinner
                 meshFilter.hideFlags = HideFlags.NotEditable;
             }
 
-            if (meshFilter.sharedMesh != _mesh)
-                meshFilter.sharedMesh = _mesh;
+            // Set the template mesh if not set yet.
+            if (meshFilter.sharedMesh != _template.mesh)
+                meshFilter.sharedMesh = _template.mesh;
         }
 
         // Update external component: mesh renderer
@@ -228,28 +201,34 @@ namespace Skinner
         {
             var meshRenderer = GetComponent<MeshRenderer>();
 
-            if (_propertyBlock == null)
-                _propertyBlock = new MaterialPropertyBlock();
-
-            _propertyBlock.SetTexture("_PositionBuffer", _positionBuffer2);
-            _propertyBlock.SetTexture("_VelocityBuffer", _velocityBuffer2);
-            _propertyBlock.SetFloat("_RandomSeed", _randomSeed);
-            _propertyBlock.SetFloat("_Offset", Time.frameCount);
-
-            meshRenderer.SetPropertyBlock(_propertyBlock);
-
             // Set the material if no material is set.
             if (meshRenderer.sharedMaterial == null)
-                meshRenderer.sharedMaterial = _surfaceMaterial;
+                meshRenderer.sharedMaterial = _defaultMaterial;
+
+            // Override the material properties.
+            if (_overrideProps == null)
+                _overrideProps = new MaterialPropertyBlock();
+
+            _overrideProps.SetTexture("_PositionBuffer", _positionBuffer2);
+            _overrideProps.SetTexture("_VelocityBuffer", _velocityBuffer2);
+            _overrideProps.SetFloat("_RandomSeed", _randomSeed);
+            _overrideProps.SetFloat("_BufferOffset", Time.frameCount);
+
+            meshRenderer.SetPropertyBlock(_overrideProps);
         }
 
         #endregion
 
         #region MonoBehaviour functions
 
+        void Reset()
+        {
+            _reconfigured = true;
+        }
+
         void OnDestroy()
         {
-            ReleaseTemporaryObjects();
+            ReleaseAnimationKernels();
         }
 
         void LateUpdate()
@@ -257,17 +236,17 @@ namespace Skinner
             // Do nothing if no source is given.
             if (_source == null) return;
 
-            // Initialize the temporary objects if not yet.
-            if (_mesh == null)
+            // Reset the animation kernels on reconfiguration.
+            // Also it's called in the first frame.
+            if (_reconfigured)
             {
-                SetUpTemporaryObjects();
-                ResetSimulationState();
+                ReleaseAnimationKernels();
+                InitializeAnimationKernels();
+                _reconfigured = false;
             }
 
-            // Advance simulation time.
-            InvokeSimulationKernels(Time.deltaTime);
-
-            // Update external components (mesh filter and renderer).
+            // Invoke animation and update external components.
+            InvokeAnimationKernels();
             UpdateMeshFilter();
             UpdateMeshRenderer();
         }

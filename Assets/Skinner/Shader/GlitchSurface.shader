@@ -1,8 +1,16 @@
-Shader "Hidden/Skinner/Glitch/Surface"
+// Surface shader for Skinner Glitch
+Shader "Skinner/Glitch"
 {
     Properties
     {
-        _PositionBuffer("", 2D) = ""{}
+        _Albedo("Albedo", Color) = (1, 1, 1)
+        _Smoothness("Smoothness", Range(0, 1)) = 0
+        _Metallic("Metallic", Range(0, 1)) = 0
+
+        [Space]
+        _Threshold("Glitch Threshold", Range(0, 5)) = 1
+
+        [HideInInspector] _PositionBuffer("", 2D) = ""{}
     }
     SubShader
     {

@@ -8,13 +8,14 @@ namespace Skinner
     {
         #region Editable properties
 
-        // Skinner source that's being visualized.
+        /// Reference to a Skinner source that will be visualized.
         public SkinnerSource source {
             get { return _source; }
             set { _source = value; }
         }
 
-        [SerializeField, Tooltip("Skinner source that's being visualized.")]
+        [SerializeField]
+        [Tooltip("Reference to a Skinner source that will be visualized.")]
         SkinnerSource _source;
 
         #endregion
