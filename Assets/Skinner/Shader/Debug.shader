@@ -1,4 +1,4 @@
-﻿// SkinnerDebug - Debug visualization shader
+﻿// Skinner/Debug - Debug visualization shader
 Shader "Hidden/Skinner/Debug"
 {
     SubShader

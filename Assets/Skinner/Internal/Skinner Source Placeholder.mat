@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Skinner Source Replacement
+  m_Name: Skinner Source Placeholder
   m_Shader: {fileID: 4800000, guid: 8de0839cdf96b48448ae1e5ba02257c8, type: 3}
   m_ShaderKeywords: _EMISSION
   m_LightmapFlags: 1

@@ -1,4 +1,4 @@
-﻿// SkinnerDebug - Debug visualization shader
+﻿// Skinner/Debug - Debug visualization shader
 
 #include "Common.cginc"
 
@@ -29,15 +29,15 @@ v2f vert(appdata v)
 
     float3 prev = tex2Dlod(_PreviousPositionBuffer, texcoord).xyz;
     float3 position = tex2Dlod(_PositionBuffer, texcoord).xyz;
-    float3 normal = tex2Dlod(_NormalBuffer, texcoord).xyz;
-    float3 tangent = tex2Dlod(_TangentBuffer, texcoord).xyz;
+    half3 normal = tex2Dlod(_NormalBuffer, texcoord).xyz;
+    half3 tangent = tex2Dlod(_TangentBuffer, texcoord).xyz;
 
     fixed3 color;
 
     if (uvw.y < 0.5)
     {
         // Line group #0 (red) - Velocity vector
-        float3 delta = (position - prev) * _Skinner_DeltaTime.y;
+        float3 delta = (position - prev) * unity_DeltaTime.y;
         position = position - delta * (uvw.z * len * 2);
         color = lerp(fixed3(1, 0, 0), 0.5, uvw.z);
     }

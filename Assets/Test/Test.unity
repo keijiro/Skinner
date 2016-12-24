@@ -356,6 +356,14 @@ Prefab:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 180
       objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: 427d34d6970bfe74f99a26b6745ccbc5, type: 3}
+      propertyPath: m_CullingMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9500000, guid: 427d34d6970bfe74f99a26b6745ccbc5, type: 3}
+      propertyPath: m_UpdateMode
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 427d34d6970bfe74f99a26b6745ccbc5, type: 3}
   m_IsPrefabParent: 0
@@ -822,7 +830,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _model: {fileID: 11400000, guid: 918125cfe4d1d1947a9e19ebaa6637ed, type: 2}
   _replacementShader: {fileID: 4800000, guid: 3731eb6d7ec045947affb03711bfbc08, type: 3}
-  _sourceMaterial: {fileID: 2100000, guid: ea72285045ca83441b0e1dcdc29cd32c, type: 2}
+  _placeholderMaterial: {fileID: 2100000, guid: ea72285045ca83441b0e1dcdc29cd32c,
+    type: 2}
 --- !u!1 &2063217252
 GameObject:
   m_ObjectHideFlags: 0

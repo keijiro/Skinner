@@ -3,32 +3,44 @@ using UnityEngine.Rendering;
 
 namespace Skinner
 {
+    /// Bakes vertex attributes of a skinned mesh into textures
+    /// and provides them to Skinner renderers.
+    [AddComponentMenu("Skinner/Skinner Source")]
+    [RequireComponent(typeof(SkinnedMeshRenderer))]
     public class SkinnerSource : MonoBehaviour
     {
         #region Editable properties
 
-        [SerializeField] SkinnerModel _model;
+        // This is only editable on Editor (not changeable at runtime).
+
+        [SerializeField, Tooltip("Preprocessed model data.")]
+        SkinnerModel _model;
 
         #endregion
 
-        #region Public property (runtime only)
+        #region Public properties
 
+        /// The count of vertices of the source model.
         public int vertexCount {
             get { return _model != null ? _model.vertexCount : 0; }
         }
 
+        /// Baked texture of skinned vertex positions.
         public RenderTexture positionBuffer {
             get { return _swapFlag ? _positionBuffer1 : _positionBuffer0; }
         }
 
+        /// Baked texture of skinned vertex positions from the previous frame.
         public RenderTexture previousPositionBuffer {
             get { return _swapFlag ? _positionBuffer0 : _positionBuffer1; }
         }
 
+        /// Baked texture of skinned vertex normals.
         public RenderTexture normalBuffer {
             get { return _normalBuffer; }
         }
 
+        /// Baked texture of skinned vertex tangents.
         public RenderTexture tangentBuffer {
             get { return _tangentBuffer; }
         }
@@ -37,24 +49,31 @@ namespace Skinner
 
         #region Internal resources
 
-        [SerializeField, HideInInspector] Shader _replacementShader;
-        [SerializeField, HideInInspector] Material _sourceMaterial;
+        // Replacement shader used for baking vertex attributes.
+        [SerializeField] Shader _replacementShader;
+
+        // Placeholder material that draws nothing but only has the replacement tag.
+        [SerializeField] Material _placeholderMaterial;
 
         #endregion
 
         #region Private members
 
-        Camera _camera;
+        // Vertex attribute buffers.
         RenderTexture _positionBuffer0;
         RenderTexture _positionBuffer1;
         RenderTexture _normalBuffer;
         RenderTexture _tangentBuffer;
+
+        // Multiple render target for even/odd frames.
         RenderBuffer[] _mrt0;
         RenderBuffer[] _mrt1;
         bool _swapFlag;
-        float _prevDelta;
 
-        // Create a render texture used as a vector buffer.
+        // Temporary camera used for vertex baking.
+        Camera _camera;
+
+        // Create a render texture for vertex baking.
         RenderTexture CreateBuffer()
         {
             var rt = new RenderTexture(_model.vertexCount, 1, 0, RenderTextureFormat.ARGBFloat);
@@ -65,21 +84,30 @@ namespace Skinner
         // Override the settings of the skinned mesh renderer.
         void OverrideRenderer()
         {
-            var r = GetComponent<SkinnedMeshRenderer>();
-            r.sharedMesh = _model.mesh;
-            r.material = _sourceMaterial;
-            r.receiveShadows = false;
-            r.enabled = false; // Will be controlled by CullingStateController.
+            var smr = GetComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = _model.mesh;
+            smr.material = _placeholderMaterial;
+            smr.receiveShadows = false;
+            smr.updateWhenOffscreen = true;
+
+            // This renderer is disabled to hide from other cameras. It will be
+            // enable by CullingStateController only while rendered from our
+            // vertex baking camera.
+            smr.enabled = false;
+
+            // Also try to modify the animator properties.
+            var animator = GetComponentInParent<Animator>();
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         }
 
-        // Create a camera used for rendering the position buffer.
+        // Create a camera for vertex baking.
         void BuildCamera()
         {
             // Create a new game object.
             var go = new GameObject("Camera");
             go.hideFlags = HideFlags.HideInHierarchy;
 
-            // Make it child of this node.
+            // Make it parented by this game object.
             var tr = go.transform;
             tr.parent = transform;
             tr.localPosition = Vector3.zero;
@@ -90,7 +118,7 @@ namespace Skinner
 
             _camera.renderingPath= RenderingPath.Forward;
             _camera.clearFlags = CameraClearFlags.SolidColor;
-            _camera.depth = -10000;
+            _camera.depth = -10000; // Is this a right way to control the order?
 
             _camera.nearClipPlane = -100;
             _camera.farClipPlane = 100;
@@ -98,9 +126,9 @@ namespace Skinner
             _camera.orthographicSize = 100;
 
             _camera.SetReplacementShader(_replacementShader, "Skinner");
-            _camera.enabled = false;
+            _camera.enabled = false; // We'll explicitly call Render().
 
-            // Add a culling state controller to hide this object from other cameras.
+            // Add CullingStateController to hide from other cameras.
             var culler = go.AddComponent<CullingStateController>();
             culler.target = GetComponent<SkinnedMeshRenderer>();
         }
@@ -111,40 +139,31 @@ namespace Skinner
 
         void Start()
         {
+            // Create the attribute buffers.
             _positionBuffer0 = CreateBuffer();
             _positionBuffer1 = CreateBuffer();
             _normalBuffer = CreateBuffer();
             _tangentBuffer = CreateBuffer();
 
-            // MRT set 0
+            // MRT set 0 (used in even frames)
             _mrt0 = new [] {
                 _positionBuffer0.colorBuffer,
                 _normalBuffer.colorBuffer,
                 _tangentBuffer.colorBuffer
             };
 
-            // MRT set 1
+            // MRT set 1 (used in odd frames)
             _mrt1 = new [] {
                 _positionBuffer1.colorBuffer,
                 _normalBuffer.colorBuffer,
                 _tangentBuffer.colorBuffer
             };
 
+            // Set up the baking rig.
             OverrideRenderer();
             BuildCamera();
 
-            // Set MRT 0
-            _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
-        }
-
-        void OnEnable()
-        {
-            if (_camera != null) _camera.enabled = true;
-        }
-
-        void OnDisable()
-        {
-            _camera.enabled = false;
+            _swapFlag = true; // This will become false by the first Update call.
         }
 
         void OnDestroy()
@@ -157,17 +176,22 @@ namespace Skinner
 
         void Update()
         {
+            // We can't invoke vertex baking at this point because the skinned
+            // mesh hasn't been updated yet. Therefore, we only update the
+            // swap flag at the moment (it should be updated before LateUpdate
+            // because Skinnere renderers will refer to the vertex attribute
+            // before that).
             _swapFlag = !_swapFlag;
+        }
 
+        void LateUpdate()
+        {
+            // Swap the buffers and invoke vertex baking.
             if (_swapFlag)
                 _camera.SetTargetBuffers(_mrt1, _positionBuffer1.depthBuffer);
             else
                 _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
-
-            _camera.Render();
-
-            Shader.SetGlobalVector("_Skinner_DeltaTime", new Vector2(_prevDelta, 1.0f / _prevDelta));
-            _prevDelta = Time.deltaTime;
+           _camera.Render();
         }
 
         #endregion

@@ -1,8 +1,5 @@
 #include "UnityCG.cginc"
 
-// Delta time (dt, 1/dt)
-float2 _Skinner_DeltaTime;
-
 // Seed for PRNG
 float _RandomSeed;
 

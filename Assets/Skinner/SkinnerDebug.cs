@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Skinner
 {
     /// Visualizes vertex attributes of a Skinner source.
-    [AddComponentMenu("Skinner/Debug")]
+    [AddComponentMenu("Skinner/Skinner Debug")]
     public class SkinnerDebug : MonoBehaviour
     {
         #region Editable properties
