@@ -45,17 +45,23 @@ void vert(inout appdata_full v)
     // Hash ID of the triangle
     float hash = v.texcoord.w;
 
-    // 0 to 1 time parameter (can be used as a V-coordinate value)
-    float time01 = frac(UVRandom(hash, 0) + _BufferOffset * _PositionBuffer_TexelSize.y);
+    // V-coodinate offset for the position buffer.
+    float voffs = UVRandom(hash, 0) + _BufferOffset * _PositionBuffer_TexelSize.y;
+
+    // U-coodinate offset: change randomly when V-offs wraps around.
+    float uoffs = frac(UVRandom(hash + floor(voffs), 1));
+
+    // Actually the fractional part of V-offs is needed.
+    voffs = frac(voffs);
 
     // Decaying animation parameter
-    float decay = pow(1 - time01, 6);
+    float decay = pow(1 - voffs, 6);
 
     // Fetch the world space positions.
     // p0: current vertex, p1: left-hand neighbor, p2: right-hand neighbor
-    float3 p0 = tex2Dlod(_PositionBuffer, float4(v.texcoord.x, time01, 0, 0)).xyz;
-    float3 p1 = tex2Dlod(_PositionBuffer, float4(v.texcoord.y, time01, 0, 0)).xyz;
-    float3 p2 = tex2Dlod(_PositionBuffer, float4(v.texcoord.z, time01, 0, 0)).xyz;
+    float3 p0 = tex2Dlod(_PositionBuffer, float4(v.texcoord.x + uoffs, voffs, 0, 0)).xyz;
+    float3 p1 = tex2Dlod(_PositionBuffer, float4(v.texcoord.y + uoffs, voffs, 0, 0)).xyz;
+    float3 p2 = tex2Dlod(_PositionBuffer, float4(v.texcoord.z + uoffs, voffs, 0, 0)).xyz;
 
     // Centroid of the triangle
     float3 center = (p0 + p1 + p2) / 3;
