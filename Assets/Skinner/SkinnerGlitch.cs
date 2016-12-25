@@ -207,7 +207,6 @@ namespace Skinner
                 _overrideProps = new MaterialPropertyBlock();
 
             _overrideProps.SetTexture("_PositionBuffer", _positionBuffer2);
-            _overrideProps.SetTexture("_VelocityBuffer", _velocityBuffer2);
             _overrideProps.SetFloat("_RandomSeed", _randomSeed);
             _overrideProps.SetFloat("_BufferOffset", Time.frameCount);
 
