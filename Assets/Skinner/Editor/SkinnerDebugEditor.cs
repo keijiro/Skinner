@@ -3,6 +3,7 @@ using UnityEditor;
 
 namespace Skinner
 {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(SkinnerDebug))]
     public class SkinnerDebugEditor : Editor
     {

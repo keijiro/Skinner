@@ -77,6 +77,9 @@ namespace Skinner
 
         void LateUpdate()
         {
+            // Do nothing if the source is not ready.
+            if (_source == null || !_source.isReady) return;
+
             // Update the source buffers.
             _props.SetTexture("_PreviousPositionBuffer", _source.previousPositionBuffer);
             _props.SetTexture("_PositionBuffer", _source.positionBuffer);

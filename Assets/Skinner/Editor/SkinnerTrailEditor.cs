@@ -4,19 +4,21 @@ using UnityEditor;
 namespace Skinner
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(SkinnerGlitch))]
-    public class SkinnerGlitchEditor : Editor
+    [CustomEditor(typeof(SkinnerTrail))]
+    public class SkinnerTrailEditor : Editor
     {
         SerializedProperty _source;
-        SerializedProperty _velocityScale;
-        SerializedProperty _historyLength;
+        SerializedProperty _template;
+        SerializedProperty _speedLimit;
+        SerializedProperty _drag;
         SerializedProperty _randomSeed;
 
         void OnEnable()
         {
             _source = serializedObject.FindProperty("_source");
-            _velocityScale = serializedObject.FindProperty("_velocityScale");
-            _historyLength = serializedObject.FindProperty("_historyLength");
+            _template = serializedObject.FindProperty("_template");
+            _speedLimit = serializedObject.FindProperty("_speedLimit");
+            _drag = serializedObject.FindProperty("_drag");
             _randomSeed = serializedObject.FindProperty("_randomSeed");
         }
 
@@ -28,17 +30,18 @@ namespace Skinner
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_source);
+            EditorGUILayout.PropertyField(_template);
             reconfigured |= EditorGUI.EndChangeCheck();
 
-            EditorGUILayout.PropertyField(_velocityScale);
+            EditorGUILayout.PropertyField(_speedLimit);
+            EditorGUILayout.PropertyField(_drag);
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(_historyLength);
             EditorGUILayout.PropertyField(_randomSeed);
             reconfigured |= EditorGUI.EndChangeCheck();
 
             if (reconfigured)
-                foreach (SkinnerGlitch sg in targets) sg.UpdateConfiguration();
+                foreach (SkinnerTrail st in targets) st.UpdateConfiguration();
 
             serializedObject.ApplyModifiedProperties();
         }

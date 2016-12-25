@@ -30,6 +30,7 @@ half _AttackLength;
 struct Input
 {
     half3 color : COLOR;
+    fixed facing : VFACE;
 };
 
 // Calculate the area of a triangle from the length of the sides.
@@ -59,9 +60,9 @@ void vert(inout appdata_full v)
 
     // Fetch the world space positions.
     // p0: current vertex, p1: left-hand neighbor, p2: right-hand neighbor
-    float3 p0 = tex2Dlod(_PositionBuffer, float4(v.texcoord.x + uoffs, voffs, 0, 0)).xyz;
-    float3 p1 = tex2Dlod(_PositionBuffer, float4(v.texcoord.y + uoffs, voffs, 0, 0)).xyz;
-    float3 p2 = tex2Dlod(_PositionBuffer, float4(v.texcoord.z + uoffs, voffs, 0, 0)).xyz;
+    float3 p0 = tex2Dlod(_PositionBuffer, float4(frac(v.texcoord.x + uoffs), voffs, 0, 0)).xyz;
+    float3 p1 = tex2Dlod(_PositionBuffer, float4(frac(v.texcoord.y + uoffs), voffs, 0, 0)).xyz;
+    float3 p2 = tex2Dlod(_PositionBuffer, float4(frac(v.texcoord.z + uoffs), voffs, 0, 0)).xyz;
 
     // Centroid of the triangle
     float3 center = (p0 + p1 + p2) / 3;
@@ -78,27 +79,23 @@ void vert(inout appdata_full v)
     half acull = saturate((area - _AreaThreshold) / _AreaThreshold);
 
     // Scale factor
-    //half scale = saturate(2 - ecull - acull) * decay;
     half scale = saturate(1 - max(ecull, acull)) * decay;
 
     // Modify the vertex position.
     v.vertex.xyz = lerp(center, p0, scale);
 
     // Calculate the normal vector.
-#if !defined(NORMAL_FLIP)
     v.normal = normalize(cross(p1 - p0, p2 - p0));
-#else
-    v.normal = normalize(cross(p2 - p0, p1 - p0));
-#endif
 
     // Attack envelope
     half attack = smoothstep(0.9 - _AttackLength * 0.9, 0.95, decay);
 
-    // 0 to 1 phase animation with random clustering
-    float phase01 = frac(floor(UVRandom(hash, 1) * 16) / 16 + _Time.y * 0.3);
-
     // Low frequency oscillation with half-wave rectified sinusoid.
-    float lfo = sin(saturate(phase01 - 1 + _EmissionProb) / max(_EmissionProb, 0.01) * UNITY_PI);
+    half phase = UVRandom(hash, 0) * 32 + _Time.y * 4;
+    half lfo = abs(sin(phase * UNITY_PI));
+
+    // Switch LFO randomly at zero-cross points.
+    lfo *= UVRandom(hash + floor(phase), 1) < _EmissionProb;
 
     // Calculate HSB and convert it to RGB.
     half hue = _BaseHue + UVRandom(hash, 2) * _HueRandomness + _HueShift * attack;
@@ -112,4 +109,5 @@ void surf(Input IN, inout SurfaceOutputStandard o)
     o.Smoothness = _Smoothness;
     o.Metallic = _Metallic;
     o.Emission = IN.color;
+    o.Normal = float3(0, 0, IN.facing > 0 ? 1 : -1);
 }

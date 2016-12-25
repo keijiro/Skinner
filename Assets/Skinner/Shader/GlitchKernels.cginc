@@ -14,12 +14,12 @@ float _VelocityScale;
 
 float4 InitializePositionFragment(v2f_img i) : SV_Target
 {
-    return (float4)0;
+    return 0;
 }
 
 float4 InitializeVelocityFragment(v2f_img i) : SV_Target
 {
-    return (float4)0;
+    return 0;
 }
 
 float4 UpdatePositionFragment(v2f_img i) : SV_Target

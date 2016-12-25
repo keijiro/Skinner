@@ -1,108 +1,118 @@
+// Animation kernels for Skinner Trail
 #include "Common.cginc"
+
+sampler2D _SourcePositionBuffer0;
+sampler2D _SourcePositionBuffer1;
 
 sampler2D _PositionBuffer;
 float4 _PositionBuffer_TexelSize;
 
-sampler2D _NewPositionBuffer;
-float4 _NewPositionBuffer_TexelSize;
-
 sampler2D _VelocityBuffer;
 float4 _VelocityBuffer_TexelSize;
 
-sampler2D _BasisBuffer;
-float4 _BasisBuffer_TexelSize;
+sampler2D _OrthnormBuffer;
+float4 _OrthnormBuffer_TexelSize;
 
-float4 InitializeVelocityFragment(v2f_img i) : SV_Target
-{
-    // Initialize with zero velocity.
-    return 0;
-}
+float _SpeedLimit;
+float _Drag;
 
 float4 InitializePositionFragment(v2f_img i) : SV_Target
 {
-    // Simply copy the current vertex position.
-    float3 p = tex2D(_NewPositionBuffer, i.uv.xy).xyz;
-    return float4(p, 0);
+    // Simply copy the source position.
+    return tex2D(_SourcePositionBuffer1, i.uv.xy);
 }
 
-float4 InitializeBasisFragment(v2f_img i) : SV_Target
+float4 InitializeVelocityFragment(v2f_img i) : SV_Target
 {
     return 0;
 }
 
-float4 UpdateVelocityFragment(v2f_img i) : SV_Target
+half4 InitializeOrthnormFragment(v2f_img i) : SV_Target
 {
-    float dv = _PositionBuffer_TexelSize.y;
-
-    if (i.uv.y <= dv)
-    {
-        // The first row: calculate the vertex velocity.
-        // Get the average with the previous frame for low-pass filtering.
-        float3 p0 = tex2D(_PositionBuffer, i.uv.xy).xyz;
-        float3 p1 = tex2D(_NewPositionBuffer, i.uv.xy).xyz;
-        float3 v0 = tex2D(_VelocityBuffer, i.uv.xy).xyz;
-        float3 v1 = (p1 - p0) * unity_DeltaTime.y;
-        return float4(0.5 * (v0 + v1), 0);
-    }
-    else
-    {
-        // Retrieve the velocity from the previous row and dampen it.
-        float2 uv = float2(i.uv.x, i.uv.y - dv);
-        float3 v = tex2D(_VelocityBuffer, uv).xyz;
-        v *= exp(-2.0 * unity_DeltaTime.x);
-        return float4(v, 0);
-    }
+    return 0;
 }
 
 float4 UpdatePositionFragment(v2f_img i) : SV_Target
 {
-    float dv = _PositionBuffer_TexelSize.y;
+    const float texelHeight = _PositionBuffer_TexelSize.y;
 
-    if (i.uv.y <= dv)
+    float2 uv = i.uv.xy;
+
+    if (uv.y < texelHeight)
     {
-        // The first row: copy the current vertex position.
-        float3 p = tex2D(_NewPositionBuffer, i.uv.xy).xyz;
-        return float4(p, 0);
+        // First row: just copy the source position.
+        return tex2D(_SourcePositionBuffer1, uv);
     }
     else
     {
-        // Retrieve the position from the previous row.
-        float2 uvp = float2(i.uv.x, i.uv.y - dv);
-        float3 p = tex2D(_PositionBuffer, uvp).xyz;
+        // Fetch the position and the velocity from the previous row.
+        uv.y -= texelHeight;
+        float3 p = tex2D(_PositionBuffer, uv).xyz;
+        float3 v = tex2D(_VelocityBuffer, uv).xyz;
 
-        // Retrieve the vertex velocity and apply it.
-        float3 v = tex2D(_VelocityBuffer, i.uv.xy).xyz;
-        float lv = length(v);
-        if (lv > 0.1) v = normalize(v) * min(lv, 0.5);
+        // Apply the velocity cap.
+        float lv = max(length(v), 1e-6);
+        v = v / lv * min(lv, _SpeedLimit);
+
+        // Update the position with the velocity.
         p += v * unity_DeltaTime.x;
 
-        return float4(p, 0);
+        return half4(p, 0);
     }
 }
 
-float4 UpdateBasisFragment(v2f_img i) : SV_Target
+float4 UpdateVelocityFragment(v2f_img i) : SV_Target
 {
-    float dv = _PositionBuffer_TexelSize.y;
+    const float texelHeight = _VelocityBuffer_TexelSize.y;
 
-    float2 uv0 = float2(i.uv.x, i.uv.y - dv * 2);
-    float2 uv1 = float2(i.uv.x, i.uv.y - dv);
-    float2 uv2 = float2(i.uv.x, i.uv.y + dv * 2);
+    float2 uv = i.uv.xy;
+
+    if (uv.y < texelHeight)
+    {
+        // The first row: calculate the vertex velocity.
+        // Get the average with the previous frame for low-pass filtering.
+        float3 p0 = tex2D(_SourcePositionBuffer0, uv).xyz;
+        float3 p1 = tex2D(_SourcePositionBuffer1, uv).xyz;
+        float3 v0 = tex2D(_VelocityBuffer, uv).xyz;
+        float3 v1 = (p1 - p0) * unity_DeltaTime.y;
+        return float4((v0 + v1) * 0.5, 0);
+    }
+    else
+    {
+        // Retrieve the velocity from the previous row and dampen it.
+        uv.y -= texelHeight;
+        float3 v = tex2D(_VelocityBuffer, uv).xyz;
+        v *= exp(-_Drag * unity_DeltaTime.x);
+        return float4(v, 0);
+    }
+}
+
+half4 UpdateOrthnormFragment(v2f_img i) : SV_Target
+{
+    const float texelHeight = _OrthnormBuffer_TexelSize.y;
+
+    float2 uv = i.uv.xy;
+
+    float2 uv0 = float2(uv.x, uv.y - texelHeight * 2);
+    float2 uv1 = float2(uv.x, uv.y - texelHeight);
+    float2 uv2 = float2(uv.x, uv.y + texelHeight * 2);
 
     // Use the parent normal vector from the previous frame.
-    float4 b1 = tex2D(_BasisBuffer, uv1);
-    float3 ax = StereoInverseProjection(b1.zw);
+    half4 b1 = tex2D(_OrthnormBuffer, uv1);
+    half3 ax = StereoInverseProjection(b1.zw);
 
     // Tangent vector
     float3 p0 = tex2D(_PositionBuffer, uv0);
     float3 p1 = tex2D(_PositionBuffer, uv2);
-    float3 az = normalize(p1 - p0);
+    half3 az = p1 - p0 + float3(1e-6, 0, 0); // zero-div guard
 
     // Reconstruct the orthonormal basis.
-    float3 ay = normalize(cross(az, ax));
+    half3 ay = normalize(cross(az, ax));
     ax = normalize(cross(ay, az));
 
     // Twisting
-    ax = normalize(ax + 0.2 * frac(i.uv.x * 3333.33) * ay * (1 - i.uv.y));
+    half tw = frac(uv.x * 327.7289) * (1 - uv.y) * 0.2;
+    ax = normalize(ax + ay * tw);
 
-    return float4(StereoProjection(ay), StereoProjection(ax));
+    return half4(StereoProjection(ay), StereoProjection(ax));
 }

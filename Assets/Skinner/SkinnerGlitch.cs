@@ -3,7 +3,7 @@
 namespace Skinner
 {
     /// Emits glitchy triangles from the given Skinner source.
-    [AddComponentMenu("Skinner/Glitch")]
+    [AddComponentMenu("Skinner/Skinner Glitch")]
     [RequireComponent(typeof(MeshRenderer))]
     public class SkinnerGlitch : MonoBehaviour
     {
@@ -94,7 +94,7 @@ namespace Skinner
             var buffer = new RenderTexture(_source.vertexCount, _historyLength, 0, format);
             buffer.hideFlags = HideFlags.HideAndDontSave;
             buffer.filterMode = FilterMode.Point;
-            buffer.wrapMode = TextureWrapMode.Repeat;
+            buffer.wrapMode = TextureWrapMode.Clamp;
             return buffer;
         }
 
@@ -234,8 +234,8 @@ namespace Skinner
 
         void LateUpdate()
         {
-            // Do nothing if no source is given.
-            if (_source == null) return;
+            // Do nothing if the source is not ready.
+            if (_source == null || !_source.isReady) return;
 
             // Reset the animation kernels on reconfiguration.
             // Also it's called in the first frame.

@@ -25,6 +25,11 @@ namespace Skinner
             get { return _model != null ? _model.vertexCount : 0; }
         }
 
+        /// Checks if the buffers are ready for use.
+        public bool isReady {
+            get { return _frameCount > 2; }
+        }
+
         /// Baked texture of skinned vertex positions.
         public RenderTexture positionBuffer {
             get { return _swapFlag ? _positionBuffer1 : _positionBuffer0; }
@@ -72,6 +77,9 @@ namespace Skinner
 
         // Temporary camera used for vertex baking.
         Camera _camera;
+
+        // Used for rejecting the first and second frame.
+        int _frameCount;
 
         // Create a render texture for vertex baking.
         RenderTexture CreateBuffer()
@@ -176,6 +184,8 @@ namespace Skinner
 
         void Update()
         {
+            _frameCount++;
+
             // We can't invoke vertex baking at this point because the skinned
             // mesh hasn't been updated yet. Therefore, we only update the
             // swap flag at the moment (it should be updated before LateUpdate

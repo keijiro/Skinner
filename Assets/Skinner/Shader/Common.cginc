@@ -27,12 +27,12 @@ float3 RotateVector(float3 v, float4 r)
 }
 
 // Stereographic projection and inverse projection
-float2 StereoProjection(float3 n)
+half2 StereoProjection(half3 n)
 {
     return n.xy / (1 - n.z);
 }
 
-float3 StereoInverseProjection(float2 p)
+half3 StereoInverseProjection(half2 p)
 {
     float d = 2 / (dot(p.xy, p.xy) + 1);
     return float3(p.xy * d, 1 - d);

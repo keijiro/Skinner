@@ -1,178 +1,279 @@
 ﻿using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Skinner
 {
+    /// Emits trail lines from the given Skinner source.
+    [AddComponentMenu("Skinner/Skinner Trail")]
+    [RequireComponent(typeof(MeshRenderer))]
     public class SkinnerTrail : MonoBehaviour
     {
-        #region Editable properties
+        #region Public properties
 
-        [SerializeField] SkinnerSource _source;
+        /// Reference to an effect source.
+        public SkinnerSource source {
+            get { return _source; }
+            set { _source = value; _reconfigured = true; }
+        }
+
+        [SerializeField]
+        [Tooltip("Reference to an effect source.")]
+        SkinnerSource _source;
+
+        /// Reference to a template object used for rendering trail lines.
+        public SkinnerTrailTemplate template {
+            get { return _template; }
+            set { _template = value; _reconfigured = true; }
+        }
+
+        [SerializeField]
+        [Tooltip("Reference to a template object used for rendering trail lines.")]
+        SkinnerTrailTemplate _template;
+
+        /// Limits an amount of a vertex movement. This only affects changes
+        /// in vertex positions (doesn't change velocity vectors).
+        public float speedLimit {
+            get { return _speedLimit; }
+            set { _speedLimit = value; }
+        }
+
+        [SerializeField]
+        [Tooltip("Limits an amount of a vertex movement. This only affects changes " +
+                 "in vertex positions (doesn't change velocity vectors).")]
+        float _speedLimit = 0.4f;
+
+        /// Drag coefficient (damping coefficient).
+        public float drag {
+            get { return _drag; }
+            set { _drag = value; }
+        }
+
+        [SerializeField]
+        [Tooltip("Drag coefficient (damping coefficient).")]
+        float _drag = 5;
+
+        /// Determines the random number sequence used for the effect.
+        public int randomSeed {
+            get { return _randomSeed; }
+            set { _randomSeed = value; _reconfigured = true; }
+        }
+
+        [SerializeField]
+        [Tooltip("Determines the random number sequence used for the effect.")]
+        int _randomSeed = 0;
 
         #endregion
 
-        #region Internal resources
+        #region Public methods
 
-        [SerializeField] Shader _kernelsShader;
-        [SerializeField] Shader _trailShader;
+        #if UNITY_EDITOR
 
-        Material _kernelsMaterial;
-        Material _trailMaterial;
-
-        RenderTexture _positionBuffer0;
-        RenderTexture _positionBuffer1;
-
-        RenderTexture _velocityBuffer0;
-        RenderTexture _velocityBuffer1;
-
-        RenderTexture _basisBuffer0;
-        RenderTexture _basisBuffer1;
-
-        Mesh _mesh;
-
-        int _frameCount;
-
-        #endregion
-
-        #region Internal resources
-
-        void Start()
+        /// Notify changes on the configuration.
+        /// This method is only available from Editor.
+        public void UpdateConfiguration()
         {
-            // Materials for wrapping the shaders
-            _kernelsMaterial = new Material(_kernelsShader);
-            _trailMaterial = new Material(_trailShader);
+            _reconfigured = true;
+        }
 
-            // Double position/velocity buffer
-            var tw = _source.vertexCount / 1;
-            var th = 65536 / 2 / tw;
+        #endif
+
+        #endregion
+
+        #region Built-in assets
+
+        [SerializeField] Shader _kernelShader;
+        [SerializeField] Material _defaultMaterial;
+
+        #endregion
+
+        #region Animation kernels
+
+        // Temporary objects used in the animation kernels.
+        Material _kernelMaterial;
+        RenderTexture _positionBuffer1;
+        RenderTexture _positionBuffer2;
+        RenderTexture _velocityBuffer1;
+        RenderTexture _velocityBuffer2;
+        RenderTexture _orthnormBuffer1;
+        RenderTexture _orthnormBuffer2;
+
+        // Indicates changes on the configuration.
+        // (temporary objects have to be reset)
+        bool _reconfigured = true;
+
+        // Create a buffer for animation kernels.
+        RenderTexture CreateBuffer()
+        {
             var format = RenderTextureFormat.ARGBFloat;
+            var buffer = new RenderTexture(_source.vertexCount, _template.historyLength, 0, format);
+            buffer.hideFlags = HideFlags.HideAndDontSave;
+            buffer.filterMode = FilterMode.Point;
+            buffer.wrapMode = TextureWrapMode.Clamp;
+            return buffer;
+        }
 
-            _positionBuffer0 = new RenderTexture(tw, th, 0, format);
-            _positionBuffer1 = new RenderTexture(tw, th, 0, format);
-
-            _velocityBuffer0 = new RenderTexture(tw, th, 0, format);
-            _velocityBuffer1 = new RenderTexture(tw, th, 0, format);
-
-            _basisBuffer0 = new RenderTexture(tw, th, 0, format);
-            _basisBuffer1 = new RenderTexture(tw, th, 0, format);
-
-            _positionBuffer0.filterMode = FilterMode.Point;
-            _positionBuffer1.filterMode = FilterMode.Point;
-
-            _velocityBuffer0.filterMode = FilterMode.Point;
-            _velocityBuffer1.filterMode = FilterMode.Point;
-
-            _basisBuffer0.filterMode = FilterMode.Point;
-            _basisBuffer1.filterMode = FilterMode.Point;
-
-            // Vertex array
-            var vertices = new Vector3 [tw * th * 2];
-            var offs = 0;
-            for (var ix = 0; ix < tw; ix++)
+        // Try to release a temporary object.
+        void ReleaseObject(Object o)
+        {
+            if (o != null)
             {
-                var u = (0.5f + ix) / tw;
-                for (var iy = 0; iy < th; iy++)
-                {
-                    var v = (0.5f + iy) / th;
-                    vertices[offs++] = new Vector3(u, v, -0.5f);
-                    vertices[offs++] = new Vector3(u, v, +0.5f);
-                }
+                if (Application.isPlaying)
+                    Destroy(o);
+                else
+                    DestroyImmediate(o);
+            }
+        }
+
+        // Create and initialize temporary objects used in the animation kernels.
+        void InitializeAnimationKernels()
+        {
+            if (_kernelMaterial == null)
+            {
+                _kernelMaterial = new Material(Shader.Find("Hidden/Skinner/Trail/Kernels"));
+                _kernelMaterial.hideFlags = HideFlags.HideAndDontSave;
             }
 
-            // Index array
-            var indices = new int [tw * 6 * (th - 1)];
-            offs = 0;
-            for (var ix = 0; ix < tw; ix++)
+            _kernelMaterial.SetFloat("_RandomSeed", _randomSeed);
+
+            if (_positionBuffer1 == null) _positionBuffer1 = CreateBuffer();
+            if (_positionBuffer2 == null) _positionBuffer2 = CreateBuffer();
+            if (_velocityBuffer1 == null) _velocityBuffer1 = CreateBuffer();
+            if (_velocityBuffer2 == null) _velocityBuffer2 = CreateBuffer();
+            if (_orthnormBuffer1 == null) _orthnormBuffer1 = CreateBuffer();
+            if (_orthnormBuffer2 == null) _orthnormBuffer2 = CreateBuffer();
+
+            // Clear the first buffers.
+            _kernelMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
+            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 0);
+            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 1);
+            Graphics.Blit(null, _orthnormBuffer2, _kernelMaterial, 2);
+        }
+
+        // Release the temporary objects used in the animation kernels.
+        void ReleaseAnimationKernels()
+        {
+            ReleaseObject(_kernelMaterial); _kernelMaterial = null;
+            ReleaseObject(_positionBuffer1); _positionBuffer1 = null;
+            ReleaseObject(_positionBuffer2); _positionBuffer2 = null;
+            ReleaseObject(_velocityBuffer1); _velocityBuffer1 = null;
+            ReleaseObject(_velocityBuffer2); _velocityBuffer2 = null;
+            ReleaseObject(_orthnormBuffer1); _orthnormBuffer1 = null;
+            ReleaseObject(_orthnormBuffer2); _orthnormBuffer2 = null;
+        }
+
+        // Invoke the animation kernels.
+        void InvokeAnimationKernels()
+        {
+            // Swap the buffers.
+            var tempPosition = _positionBuffer1;
+            var tempVelocity = _velocityBuffer1;
+            var tempOrthnorm = _orthnormBuffer1;
+
+            _positionBuffer1 = _positionBuffer2;
+            _velocityBuffer1 = _velocityBuffer2;
+            _orthnormBuffer1 = _orthnormBuffer2;
+
+            _positionBuffer2 = tempPosition;
+            _velocityBuffer2 = tempVelocity;
+            _orthnormBuffer2 = tempOrthnorm;
+
+            // Source position attributes.
+            _kernelMaterial.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
+            _kernelMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
+
+            // Invoke the velocity update kernel.
+            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer1);
+            _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer1);
+            _kernelMaterial.SetFloat("_SpeedLimit", _speedLimit);
+            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 4);
+
+            // Invoke the position update kernel.
+            _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer2);
+            _kernelMaterial.SetFloat("_Drag", _drag);
+            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 3);
+
+            // Invoke the orthonormal update kernel.
+            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer2);
+            _kernelMaterial.SetTexture("_OrthnormBuffer", _orthnormBuffer1);
+            Graphics.Blit(null, _orthnormBuffer2, _kernelMaterial, 5);
+        }
+
+        #endregion
+
+        #region External component control
+
+        // Custom properties applied to the mesh renderer.
+        MaterialPropertyBlock _overrideProps;
+
+        // Update external component: mesh filter
+        void UpdateMeshFilter()
+        {
+            var meshFilter = GetComponent<MeshFilter>();
+
+            // Add a new mesh filter if missing.
+            if (meshFilter == null)
             {
-                var vi = th * ix * 2;
-                for (var iy = 0; iy < th - 1; iy++)
-                {
-                    indices[offs++] = vi;
-                    indices[offs++] = vi + 2;
-                    indices[offs++] = vi + 1;
-
-                    indices[offs++] = vi + 1;
-                    indices[offs++] = vi + 2;
-                    indices[offs++] = vi + 3;
-
-                    vi += 2;
-                }
+                meshFilter = gameObject.AddComponent<MeshFilter>();
+                meshFilter.hideFlags = HideFlags.NotEditable;
             }
 
-            // Create a mesh.
-            _mesh = new Mesh();
-            _mesh.vertices = vertices;
-            _mesh.SetIndices(indices, MeshTopology.Triangles, 0);
-            _mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 1000);
-            _mesh.UploadMeshData(true);
+            // Set the template mesh if not set yet.
+            if (meshFilter.sharedMesh != _template.mesh)
+                meshFilter.sharedMesh = _template.mesh;
+        }
+
+        // Update external component: mesh renderer
+        void UpdateMeshRenderer()
+        {
+            var meshRenderer = GetComponent<MeshRenderer>();
+
+            // Set the material if no material is set.
+            if (meshRenderer.sharedMaterial == null)
+                meshRenderer.sharedMaterial = _defaultMaterial;
+
+            // Override the material properties.
+            if (_overrideProps == null)
+                _overrideProps = new MaterialPropertyBlock();
+
+            _overrideProps.SetTexture("_PositionBuffer", _positionBuffer2);
+            _overrideProps.SetTexture("_VelocityBuffer", _velocityBuffer2);
+            _overrideProps.SetTexture("_OrthnormBuffer", _orthnormBuffer2);
+            _overrideProps.SetFloat("_RandomSeed", _randomSeed);
+
+            meshRenderer.SetPropertyBlock(_overrideProps);
+        }
+
+        #endregion
+
+        #region MonoBehaviour functions
+
+        void Reset()
+        {
+            _reconfigured = true;
         }
 
         void OnDestroy()
         {
-            if (_kernelsMaterial != null) Destroy(_kernelsMaterial);
-            if (_trailMaterial != null) Destroy(_trailMaterial);
-
-            if (_positionBuffer0 != null) Destroy(_positionBuffer0);
-            if (_positionBuffer1 != null) Destroy(_positionBuffer1);
-
-            if (_velocityBuffer0 != null) Destroy(_velocityBuffer0);
-            if (_velocityBuffer1 != null) Destroy(_velocityBuffer1);
-
-            if (_basisBuffer0 != null) Destroy(_basisBuffer0);
-            if (_basisBuffer1 != null) Destroy(_basisBuffer1);
-
-            if (_mesh != null) Destroy(_mesh);
+            ReleaseAnimationKernels();
         }
 
         void LateUpdate()
         {
-            var swap = (_frameCount & 1) != 0;
-            var pb0 = swap ? _positionBuffer1 : _positionBuffer0;
-            var pb1 = swap ? _positionBuffer0 : _positionBuffer1;
-            var vb0 = swap ? _velocityBuffer1 : _velocityBuffer0;
-            var vb1 = swap ? _velocityBuffer0 : _velocityBuffer1;
-            var bb0 = swap ? _basisBuffer1 : _basisBuffer0;
-            var bb1 = swap ? _basisBuffer0 : _basisBuffer1;
+            // Do nothing if the source is not ready.
+            if (_source == null || !_source.isReady) return;
 
-            // New positions
-            _kernelsMaterial.SetTexture("_NewPositionBuffer", _source.positionBuffer);
-
-            if (_frameCount < 3)
+            // Reset the animation kernels on reconfiguration.
+            // Also it's called in the first frame.
+            if (_reconfigured)
             {
-                // The first frame: initialize the buffers.
-                Graphics.Blit(null, vb1, _kernelsMaterial, 0);
-                Graphics.Blit(null, pb1, _kernelsMaterial, 1);
-                Graphics.Blit(null, bb1, _kernelsMaterial, 2);
-            }
-            else
-            {
-                // Update velocities.
-                _kernelsMaterial.SetTexture("_PositionBuffer", pb0);
-                _kernelsMaterial.SetTexture("_VelocityBuffer", vb0);
-                Graphics.Blit(null, vb1, _kernelsMaterial, 3);
-
-                // Update positions.
-                _kernelsMaterial.SetTexture("_VelocityBuffer", vb1);
-                Graphics.Blit(null, pb1, _kernelsMaterial, 4);
-
-                // Update orthonormal bases.
-                _kernelsMaterial.SetTexture("_PositionBuffer", pb1);
-                _kernelsMaterial.SetTexture("_BasisBuffer", bb0);
-                Graphics.Blit(null, bb1, _kernelsMaterial, 5);
+                ReleaseAnimationKernels();
+                InitializeAnimationKernels();
+                _reconfigured = false;
             }
 
-            // Draw the line mesh.
-            _trailMaterial.SetTexture("_PositionBuffer", pb1);
-            _trailMaterial.SetTexture("_VelocityBuffer", vb1);
-            _trailMaterial.SetTexture("_BasisBuffer", bb1);
-
-            Graphics.DrawMesh(
-                _mesh, Vector3.zero, Quaternion.identity,
-                _trailMaterial, gameObject.layer, null, 0,
-                null, ShadowCastingMode.On, true
-            );
-
-            _frameCount++;
+            // Invoke animation and update external components.
+            InvokeAnimationKernels();
+            UpdateMeshFilter();
+            UpdateMeshRenderer();
         }
 
         #endregion

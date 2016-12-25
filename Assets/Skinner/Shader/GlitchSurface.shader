@@ -28,20 +28,10 @@ Shader "Skinner/Glitch"
     SubShader
     {
         Tags { "RenderType"="Opaque" }
-
-        Cull Back
+        Cull Off
         CGPROGRAM
         #pragma surface surf Standard vertex:vert nolightmap addshadow
         #pragma target 3.0
-        #pragma multi_compile __ UNITY_COLORSPACE_GAMMA
-        #include "GlitchSurface.cginc"
-        ENDCG
-
-        Cull Front
-        CGPROGRAM
-        #pragma surface surf Standard vertex:vert nolightmap addshadow
-        #pragma target 3.0
-        #define NORMAL_FLIP
         #pragma multi_compile __ UNITY_COLORSPACE_GAMMA
         #include "GlitchSurface.cginc"
         ENDCG

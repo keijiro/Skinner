@@ -31,7 +31,7 @@ namespace Skinner
                 path = "Assets";
             else if (Path.GetExtension(path) != "")
                 path = path.Replace(Path.GetFileName(path), "");
-            var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/Skinner Glitch Template.asset");
+            var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/New Skinner Glitch Template.asset");
 
             // Create a template asset.
             var asset = ScriptableObject.CreateInstance<SkinnerGlitchTemplate>();
