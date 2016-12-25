@@ -29,27 +29,24 @@ namespace Skinner
         [Tooltip("Length of the frame history.")]
         int _historyLength = 256;
 
-        /// Used for generate random numbers for the effect.
+        /// Determines the random number sequence used for the effect.
         public int randomSeed {
             get { return _randomSeed; }
             set { _randomSeed = value; _reconfigured = true; }
         }
 
         [SerializeField]
-        [Tooltip("Used for generate random numbers for the effect.")]
+        [Tooltip("Determines the random number sequence used for the effect.")]
         int _randomSeed = 0;
 
-        /// Controls the appearance rate of effect elements.
-        public float throttle {
-            get { return _throttle; }
-            set { _throttle = value; }
+        /// Determines how the effect elements inherit the source velocity.
+        public float velocityScale {
+            get { return _velocityScale; }
+            set { _velocityScale = value; }
         }
 
         [SerializeField, Range(0, 1)]
-        [Tooltip("Controls the appearance rate of effect elements.")]
-        float _throttle = 1.0f;
-
-        [SerializeField, Range(0, 1)]
+        [Tooltip("Determines how the effect elements inherit the source velocity.")]
         float _velocityScale = 0.2f;
 
         #endregion
