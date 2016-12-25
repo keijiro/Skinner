@@ -23,10 +23,21 @@ namespace Skinner
         {
             serializedObject.Update();
 
+            bool reconfigured = false;
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_source);
+            reconfigured |= EditorGUI.EndChangeCheck();
+
             EditorGUILayout.PropertyField(_velocityScale);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_historyLength);
             EditorGUILayout.PropertyField(_randomSeed);
+            reconfigured |= EditorGUI.EndChangeCheck();
+
+            if (reconfigured)
+                foreach (SkinnerGlitch sg in targets) sg.UpdateConfiguration();
 
             serializedObject.ApplyModifiedProperties();
         }

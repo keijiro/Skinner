@@ -223,6 +223,11 @@ namespace Skinner
             _reconfigured = true;
         }
 
+        void OnValidate()
+        {
+            _historyLength = Mathf.Clamp(_historyLength, 1, 1024);
+        }
+
         void OnDestroy()
         {
             ReleaseAnimationKernels();
