@@ -6,6 +6,7 @@ Shader "Hidden/Skinner/Replacement"
         Tags { "Skinner" = "Source" }
         Pass
         {
+            ZTest Always ZWrite Off
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
