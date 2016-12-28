@@ -29,7 +29,7 @@ v2f vert(appdata v)
 {
     v2f o;
     // POSITION <= UV on the attribute buffer
-    o.position = float4(v.texcoord.xy * 2 - 1, 0, 1);
+    o.position = float4(v.texcoord.x * 2 - 1, 0, 0, 1);
     // TEXCOORD <= World position
     o.texcoord = mul(unity_ObjectToWorld, v.vertex).xyz;
     // NORMAL <= World normal
