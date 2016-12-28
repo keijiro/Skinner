@@ -84,7 +84,8 @@ namespace Skinner
         // Create a render texture for vertex baking.
         RenderTexture CreateBuffer()
         {
-            var rt = new RenderTexture(_model.vertexCount, 1, 0, RenderTextureFormat.ARGBFloat);
+            var format = SkinnerInternals.supportedBufferFormat;
+            var rt = new RenderTexture(_model.vertexCount, 1, 0, format);
             rt.filterMode = FilterMode.Point;
             return rt;
         }

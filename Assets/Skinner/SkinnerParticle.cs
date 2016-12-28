@@ -187,11 +187,15 @@ namespace Skinner
 
         #endregion
 
-        #region Public methods
+        #region Reconfiguration detection
+
+        // Indicates changes in the configuration.
+        // (temporary objects have to be reset)
+        bool _reconfigured;
 
         #if UNITY_EDITOR
 
-        /// Notify changes on the configuration.
+        /// Notify changes in the configuration.
         /// This method is only available from Editor.
         public void UpdateConfiguration()
         {
@@ -209,191 +213,107 @@ namespace Skinner
 
         #endregion
 
-        #region Animation kernels
+        #region Animation kernels management
 
-        // Temporary objects used in the animation kernels.
-        Material _kernelMaterial;
-        RenderTexture _positionBuffer1;
-        RenderTexture _positionBuffer2;
-        RenderTexture _velocityBuffer1;
-        RenderTexture _velocityBuffer2;
-        RenderTexture _rotationBuffer1;
-        RenderTexture _rotationBuffer2;
+        enum Kernels {
+            InitializePosition, InitializeVelocity, InitializeRotation,
+            UpdatePosition, UpdateVelocity, UpdateRotation
+        }
 
-        // Variables for animation.
+        enum Buffers { Position, Velocity, Rotation }
+
+        AnimationKernelSet<Kernels, Buffers> _kernel;
+
+        // Local state variables.
         Vector3 _noiseOffset;
 
-        // Indicates changes on the configuration.
-        // (temporary objects have to be reset)
-        bool _reconfigured = true;
-
-        // Create a buffer for animation kernels.
-        RenderTexture CreateBuffer()
-        {
-            var format = RenderTextureFormat.ARGBFloat;
-            var buffer = new RenderTexture(_template.instanceCount, 1, 0, format);
-            buffer.hideFlags = HideFlags.HideAndDontSave;
-            buffer.filterMode = FilterMode.Point;
-            buffer.wrapMode = TextureWrapMode.Clamp;
-            return buffer;
-        }
-
-        // Try to release a temporary object.
-        void ReleaseObject(Object o)
-        {
-            if (o != null)
-            {
-                if (Application.isPlaying)
-                    Destroy(o);
-                else
-                    DestroyImmediate(o);
-            }
-        }
-
-        // Create and initialize temporary objects used in the animation kernels.
-        void InitializeAnimationKernels()
-        {
-            if (_kernelMaterial == null)
-            {
-                _kernelMaterial = new Material(Shader.Find("Hidden/Skinner/Particle/Kernels"));
-                _kernelMaterial.hideFlags = HideFlags.HideAndDontSave;
-            }
-
-            _kernelMaterial.SetFloat("_RandomSeed", _randomSeed);
-
-            if (_positionBuffer1 == null) _positionBuffer1 = CreateBuffer();
-            if (_positionBuffer2 == null) _positionBuffer2 = CreateBuffer();
-            if (_velocityBuffer1 == null) _velocityBuffer1 = CreateBuffer();
-            if (_velocityBuffer2 == null) _velocityBuffer2 = CreateBuffer();
-            if (_rotationBuffer1 == null) _rotationBuffer1 = CreateBuffer();
-            if (_rotationBuffer2 == null) _rotationBuffer2 = CreateBuffer();
-
-            // Clear the first buffers.
-            _kernelMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
-            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 0);
-            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 1);
-            Graphics.Blit(null, _rotationBuffer2, _kernelMaterial, 2);
-        }
-
-        // Release the temporary objects used in the animation kernels.
-        void ReleaseAnimationKernels()
-        {
-            ReleaseObject(_kernelMaterial); _kernelMaterial = null;
-            ReleaseObject(_positionBuffer1); _positionBuffer1 = null;
-            ReleaseObject(_positionBuffer2); _positionBuffer2 = null;
-            ReleaseObject(_velocityBuffer1); _velocityBuffer1 = null;
-            ReleaseObject(_velocityBuffer2); _velocityBuffer2 = null;
-            ReleaseObject(_rotationBuffer1); _rotationBuffer1 = null;
-            ReleaseObject(_rotationBuffer2); _rotationBuffer2 = null;
-        }
-
-        // Invoke the animation kernels.
         void InvokeAnimationKernels()
         {
-            // Swap the buffers.
-            var tempPosition = _positionBuffer1;
-            var tempVelocity = _velocityBuffer1;
-            var tempRotation = _rotationBuffer1;
+            if (_kernel == null)
+                _kernel = new AnimationKernelSet<Kernels, Buffers>(_kernelShader);
 
-            _positionBuffer1 = _positionBuffer2;
-            _velocityBuffer1 = _velocityBuffer2;
-            _rotationBuffer1 = _rotationBuffer2;
+            if (!_kernel.ready)
+            {
+                // Initialize the animation kernels and buffers.
+                _kernel.Setup(_template.instanceCount, 1);
+                _kernel.material.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
+                _kernel.material.SetFloat("_RandomSeed", _randomSeed);
+                _kernel.Invoke(Kernels.InitializePosition, Buffers.Position);
+                _kernel.Invoke(Kernels.InitializeVelocity, Buffers.Velocity);
+                _kernel.Invoke(Kernels.InitializeRotation, Buffers.Rotation);
+            }
+            else
+            {
+                // Update kernel parameters.
+                _kernel.material.SetVector("_Damper", new Vector2(
+                    Mathf.Exp(-_drag * Time.deltaTime), _speedLimit
+                ));
 
-            _positionBuffer2 = tempPosition;
-            _velocityBuffer2 = tempVelocity;
-            _rotationBuffer2 = tempRotation;
+                _kernel.material.SetVector("_Gravity", _gravity * Time.deltaTime);
 
-            // Update kernel parameters.
-            _kernelMaterial.SetVector("_Damper", new Vector2(
-                Mathf.Exp(-_drag * Time.deltaTime), _speedLimit
-            ));
+                _kernel.material.SetVector("_Life", new Vector2(
+                    Time.deltaTime / _maxLife, Time.deltaTime / (_maxLife * _speedToLife)
+                ));
 
-            _kernelMaterial.SetVector("_Gravity", _gravity * Time.deltaTime);
+                var pi360dt = Mathf.PI * Time.deltaTime / 360;
+                _kernel.material.SetVector("_Spin", new Vector2(
+                    _maxSpin * pi360dt, _speedToSpin * pi360dt
+                ));
 
-            _kernelMaterial.SetVector("_Life", new Vector2(
-                Time.deltaTime / _maxLife, Time.deltaTime / (_maxLife * _speedToLife)
-            ));
+                _kernel.material.SetVector("_NoiseParams", new Vector2(
+                    _noiseFrequency, _noiseAmplitude * Time.deltaTime
+                ));
 
-            var pi360dt = Mathf.PI * Time.deltaTime / 360;
-            _kernelMaterial.SetVector("_Spin", new Vector2(
-                _maxSpin * pi360dt, _speedToSpin * pi360dt
-            ));
+                // Move the noise field backward in the direction of the
+                // gravity vector, or simply pull up if no gravity is set.
+                var noiseDir = (_gravity == Vector3.zero) ? Vector3.up : _gravity.normalized;
+                _noiseOffset += noiseDir * _noiseMotion * Time.deltaTime;
+                _kernel.material.SetVector("_NoiseOffset", _noiseOffset);
 
-            _kernelMaterial.SetVector("_NoiseParams", new Vector2(
-                _noiseFrequency, _noiseAmplitude * Time.deltaTime
-            ));
+                // Transfer the source position attributes.
+                _kernel.material.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
+                _kernel.material.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
 
-            // Move the noise field backward in the direction of the
-            // gravity vector, or simply pull up if no gravity is set.
-            var noiseDir = (_gravity == Vector3.zero) ? Vector3.up : _gravity.normalized;
-            _noiseOffset += noiseDir * _noiseMotion * Time.deltaTime;
-            _kernelMaterial.SetVector("_NoiseOffset", _noiseOffset);
+                // Invoke the position update kernel.
+                _kernel.material.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
+                _kernel.material.SetTexture("_VelocityBuffer", _kernel.GetLastBuffer(Buffers.Velocity));
+                _kernel.Invoke(Kernels.UpdatePosition, Buffers.Position);
 
-            // Source position attributes.
-            _kernelMaterial.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
-            _kernelMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
+                // Invoke the velocity update kernel with the updated positions.
+                _kernel.material.SetTexture("_PositionBuffer", _kernel.GetWorkingBuffer(Buffers.Position));
+                _kernel.Invoke(Kernels.UpdateVelocity, Buffers.Velocity);
 
-            // Invoke the position update kernel.
-            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer1);
-            _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer1);
-            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 3);
+                // Invoke the rotation update kernel with the updated velocity.
+                _kernel.material.SetTexture("_RotationBuffer", _kernel.GetLastBuffer(Buffers.Rotation));
+                _kernel.material.SetTexture("_VelocityBuffer", _kernel.GetWorkingBuffer(Buffers.Velocity));
+                _kernel.Invoke(Kernels.UpdateRotation, Buffers.Rotation);
+            }
 
-            // Invoke the velocity update kernel.
-            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer2);
-            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 4);
-
-            // Invoke the rotation update kernel.
-            _kernelMaterial.SetTexture("_RotationBuffer", _rotationBuffer1);
-            _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer2);
-            Graphics.Blit(null, _rotationBuffer2, _kernelMaterial, 5);
+            _kernel.SwapBuffers();
         }
 
         #endregion
 
-        #region External component control
+        #region External renderer control
 
-        // Custom properties applied to the mesh renderer.
-        MaterialPropertyBlock _overrideProps;
+        RendererAdapter _renderer;
 
-        // Update external component: mesh filter
-        void UpdateMeshFilter()
+        void UpdateRenderer()
         {
-            var meshFilter = GetComponent<MeshFilter>();
+            if (_renderer == null)
+                _renderer = new RendererAdapter(gameObject, _defaultMaterial);
 
-            // Add a new mesh filter if missing.
-            if (meshFilter == null)
-            {
-                meshFilter = gameObject.AddComponent<MeshFilter>();
-                meshFilter.hideFlags = HideFlags.NotEditable;
-            }
+            // Update the custom property block.
+            var block = _renderer.propertyBlock;
+            block.SetTexture("_PreviousPositionBuffer", _kernel.GetWorkingBuffer(Buffers.Position));
+            block.SetTexture("_PreviousRotationBuffer", _kernel.GetWorkingBuffer(Buffers.Rotation));
+            block.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
+            block.SetTexture("_VelocityBuffer", _kernel.GetLastBuffer(Buffers.Velocity));
+            block.SetTexture("_RotationBuffer", _kernel.GetLastBuffer(Buffers.Rotation));
+            block.SetVector("_Scale", new Vector2(_maxScale, _speedToScale));
+            block.SetFloat("_RandomSeed", _randomSeed);
 
-            // Set the template mesh if not set yet.
-            if (meshFilter.sharedMesh != _template.mesh)
-                meshFilter.sharedMesh = _template.mesh;
-        }
-
-        // Update external component: mesh renderer
-        void UpdateMeshRenderer()
-        {
-            var meshRenderer = GetComponent<MeshRenderer>();
-
-            // Set the material if no material is set.
-            if (meshRenderer.sharedMaterial == null)
-                meshRenderer.sharedMaterial = _defaultMaterial;
-
-            // Override the material properties.
-            if (_overrideProps == null)
-                _overrideProps = new MaterialPropertyBlock();
-
-            _overrideProps.SetTexture("_PreviousPositionBuffer", _positionBuffer1);
-            _overrideProps.SetTexture("_PreviousRotationBuffer", _rotationBuffer1);
-            _overrideProps.SetTexture("_PositionBuffer", _positionBuffer2);
-            _overrideProps.SetTexture("_VelocityBuffer", _velocityBuffer2);
-            _overrideProps.SetTexture("_RotationBuffer", _rotationBuffer2);
-            _overrideProps.SetVector("_Scale", new Vector2(_maxScale, _speedToScale));
-            _overrideProps.SetFloat("_RandomSeed", _randomSeed);
-
-            meshRenderer.SetPropertyBlock(_overrideProps);
+            _renderer.Update(_template.mesh);
         }
 
         #endregion
@@ -405,11 +325,6 @@ namespace Skinner
             _reconfigured = true;
         }
 
-        void OnDestroy()
-        {
-            ReleaseAnimationKernels();
-        }
-
         void OnValidate()
         {
             _speedToLife = Mathf.Max(_speedToLife, 0);
@@ -419,24 +334,26 @@ namespace Skinner
             _maxScale = Mathf.Max(_maxScale, 0);
         }
 
+        void OnDestroy()
+        {
+            _kernel.Release();
+        }
+
         void LateUpdate()
         {
             // Do nothing if the source is not ready.
             if (_source == null || !_source.isReady) return;
 
             // Reset the animation kernels on reconfiguration.
-            // Also it's called in the first frame.
             if (_reconfigured)
             {
-                ReleaseAnimationKernels();
-                InitializeAnimationKernels();
+                if (_kernel != null) _kernel.Release();
                 _reconfigured = false;
             }
 
-            // Invoke animation and update external components.
+            // Invoke the animation kernels and update the renderer.
             InvokeAnimationKernels();
-            UpdateMeshFilter();
-            UpdateMeshRenderer();
+            UpdateRenderer();
         }
 
         #endregion

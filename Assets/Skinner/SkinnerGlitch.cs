@@ -51,11 +51,15 @@ namespace Skinner
 
         #endregion
 
-        #region Public methods
+        #region Reconfiguration detection
+
+        // Indicates changes in the configuration.
+        // (temporary objects have to be reset)
+        bool _reconfigured;
 
         #if UNITY_EDITOR
 
-        /// Notify changes on the configuration.
+        /// Notify changes in the configuration.
         /// This method is only available from Editor.
         public void UpdateConfiguration()
         {
@@ -74,143 +78,68 @@ namespace Skinner
 
         #endregion
 
-        #region Animation kernels
+        #region Animation kernels management
 
-        // Temporary objects used in the animation kernels.
-        Material _kernelMaterial;
-        RenderTexture _positionBuffer1;
-        RenderTexture _positionBuffer2;
-        RenderTexture _velocityBuffer1;
-        RenderTexture _velocityBuffer2;
-
-        // Indicates changes on the configuration.
-        // (temporary objects have to be reset)
-        bool _reconfigured = true;
-
-        // Create a buffer for animation kernels.
-        RenderTexture CreateBuffer()
-        {
-            var format = RenderTextureFormat.ARGBFloat;
-            var buffer = new RenderTexture(_source.vertexCount, _historyLength, 0, format);
-            buffer.hideFlags = HideFlags.HideAndDontSave;
-            buffer.filterMode = FilterMode.Point;
-            buffer.wrapMode = TextureWrapMode.Clamp;
-            return buffer;
+        enum Kernels {
+            InitializePosition, InitializeVelocity,
+            UpdatePosition, UpdateVelocity
         }
 
-        // Try to release a temporary object.
-        void ReleaseObject(Object o)
-        {
-            if (o != null)
-            {
-                if (Application.isPlaying)
-                    Destroy(o);
-                else
-                    DestroyImmediate(o);
-            }
-        }
+        enum Buffers { Position, Velocity }
 
-        // Create and initialize temporary objects used in the animation kernels.
-        void InitializeAnimationKernels()
-        {
-            if (_kernelMaterial == null)
-            {
-                _kernelMaterial = new Material(Shader.Find("Hidden/Skinner/Glitch/Kernels"));
-                _kernelMaterial.hideFlags = HideFlags.HideAndDontSave;
-            }
+        AnimationKernelSet<Kernels, Buffers> _kernel;
 
-            _kernelMaterial.SetFloat("_RandomSeed", _randomSeed);
-
-            if (_positionBuffer1 == null) _positionBuffer1 = CreateBuffer();
-            if (_positionBuffer2 == null) _positionBuffer2 = CreateBuffer();
-            if (_velocityBuffer1 == null) _velocityBuffer1 = CreateBuffer();
-            if (_velocityBuffer2 == null) _velocityBuffer2 = CreateBuffer();
-
-            // Clear the first buffers.
-            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 0);
-            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 0);
-        }
-
-        // Release the temporary objects used in the animation kernels.
-        void ReleaseAnimationKernels()
-        {
-            ReleaseObject(_kernelMaterial); _kernelMaterial = null;
-            ReleaseObject(_positionBuffer1); _positionBuffer1 = null;
-            ReleaseObject(_positionBuffer2); _positionBuffer2 = null;
-            ReleaseObject(_velocityBuffer1); _velocityBuffer1 = null;
-            ReleaseObject(_velocityBuffer2); _velocityBuffer2 = null;
-        }
-
-        // Invoke the animation kernels.
         void InvokeAnimationKernels()
         {
-            // Swap the buffers.
-            var tempPosition = _positionBuffer1;
-            var tempVelocity = _velocityBuffer1;
+            if (_kernel == null)
+                _kernel = new AnimationKernelSet<Kernels, Buffers>(_kernelShader);
 
-            _positionBuffer1 = _positionBuffer2;
-            _velocityBuffer1 = _velocityBuffer2;
+            if (!_kernel.ready)
+            {
+                // Initialize the animation kernels and buffers.
+                _kernel.Setup(_source.vertexCount, _historyLength);
+                _kernel.material.SetFloat("_RandomSeed", _randomSeed);
+                _kernel.Invoke(Kernels.InitializePosition, Buffers.Position);
+                _kernel.Invoke(Kernels.InitializeVelocity, Buffers.Velocity);
+            }
+            else
+            {
+                // Transfer the source position attributes.
+                _kernel.material.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
+                _kernel.material.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
 
-            _positionBuffer2 = tempPosition;
-            _velocityBuffer2 = tempVelocity;
+                // Invoke the position update kernel.
+                _kernel.material.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
+                _kernel.material.SetTexture("_VelocityBuffer", _kernel.GetLastBuffer(Buffers.Velocity));
+                _kernel.material.SetFloat("_VelocityScale", _velocityScale);
+                _kernel.Invoke(Kernels.UpdatePosition, Buffers.Position);
 
-            // Source position attributes.
-            _kernelMaterial.SetTexture("_SourcePositionBuffer0", _source.previousPositionBuffer);
-            _kernelMaterial.SetTexture("_SourcePositionBuffer1", _source.positionBuffer);
+                // Invoke the velocity update kernel with the updated positions.
+                _kernel.material.SetTexture("_PositionBuffer", _kernel.GetWorkingBuffer(Buffers.Position));
+                _kernel.Invoke(Kernels.UpdateVelocity, Buffers.Velocity);
+            }
 
-            // Invoke the position update kernel.
-            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer1);
-            _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer1);
-            _kernelMaterial.SetFloat("_VelocityScale", _velocityScale);
-            Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 2);
-
-            // Invoke the velocity update kernel.
-            _kernelMaterial.SetTexture("_PositionBuffer", _positionBuffer2);
-            Graphics.Blit(null, _velocityBuffer2, _kernelMaterial, 3);
+            _kernel.SwapBuffers();
         }
 
         #endregion
 
-        #region External component control
+        #region External renderer control
 
-        // Custom properties applied to the mesh renderer.
-        MaterialPropertyBlock _overrideProps;
+        RendererAdapter _renderer;
 
-        // Update external component: mesh filter
-        void UpdateMeshFilter()
+        void UpdateRenderer()
         {
-            var meshFilter = GetComponent<MeshFilter>();
+            if (_renderer == null)
+                _renderer = new RendererAdapter(gameObject, _defaultMaterial);
 
-            // Add a new mesh filter if missing.
-            if (meshFilter == null)
-            {
-                meshFilter = gameObject.AddComponent<MeshFilter>();
-                meshFilter.hideFlags = HideFlags.NotEditable;
-            }
+            // Update the custom property block.
+            var block = _renderer.propertyBlock;
+            block.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
+            block.SetFloat("_RandomSeed", _randomSeed);
+            block.SetFloat("_BufferOffset", Time.frameCount);
 
-            // Set the template mesh if not set yet.
-            if (meshFilter.sharedMesh != _template.mesh)
-                meshFilter.sharedMesh = _template.mesh;
-        }
-
-        // Update external component: mesh renderer
-        void UpdateMeshRenderer()
-        {
-            var meshRenderer = GetComponent<MeshRenderer>();
-
-            // Set the material if no material is set.
-            if (meshRenderer.sharedMaterial == null)
-                meshRenderer.sharedMaterial = _defaultMaterial;
-
-            // Override the material properties.
-            if (_overrideProps == null)
-                _overrideProps = new MaterialPropertyBlock();
-
-            _overrideProps.SetTexture("_PositionBuffer", _positionBuffer2);
-            _overrideProps.SetFloat("_RandomSeed", _randomSeed);
-            _overrideProps.SetFloat("_BufferOffset", Time.frameCount);
-
-            meshRenderer.SetPropertyBlock(_overrideProps);
+            _renderer.Update(_template.mesh);
         }
 
         #endregion
@@ -229,7 +158,7 @@ namespace Skinner
 
         void OnDestroy()
         {
-            ReleaseAnimationKernels();
+            _kernel.Release();
         }
 
         void LateUpdate()
@@ -238,18 +167,15 @@ namespace Skinner
             if (_source == null || !_source.isReady) return;
 
             // Reset the animation kernels on reconfiguration.
-            // Also it's called in the first frame.
             if (_reconfigured)
             {
-                ReleaseAnimationKernels();
-                InitializeAnimationKernels();
+                if (_kernel != null) _kernel.Release();
                 _reconfigured = false;
             }
 
-            // Invoke animation and update external components.
+            // Invoke the animation kernels and update the renderer.
             InvokeAnimationKernels();
-            UpdateMeshFilter();
-            UpdateMeshRenderer();
+            UpdateRenderer();
         }
 
         #endregion
