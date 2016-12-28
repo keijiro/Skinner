@@ -2,7 +2,7 @@
 
 namespace Skinner
 {
-    /// Emits trail lines from the given Skinner source.
+    /// Emits trail lines from a given Skinner source.
     [AddComponentMenu("Skinner/Skinner Trail")]
     [RequireComponent(typeof(MeshRenderer))]
     public class SkinnerTrail : MonoBehaviour
@@ -188,7 +188,7 @@ namespace Skinner
 
             // Invoke the position update kernel.
             _kernelMaterial.SetTexture("_VelocityBuffer", _velocityBuffer2);
-            _kernelMaterial.SetFloat("_Drag", _drag);
+            _kernelMaterial.SetFloat("_Drag", Mathf.Exp(-_drag * Time.deltaTime));
             Graphics.Blit(null, _positionBuffer2, _kernelMaterial, 3);
 
             // Invoke the orthonormal update kernel.

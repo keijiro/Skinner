@@ -1,5 +1,5 @@
 ﻿// Skinner/Source Placeholder - Placeholder for shader replacement
-Shader "Skinner/Source Placeholder"
+Shader "Hidden/Skinner/Source Placeholder"
 {
     SubShader
     {

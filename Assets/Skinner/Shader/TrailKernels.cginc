@@ -82,8 +82,7 @@ float4 UpdateVelocityFragment(v2f_img i) : SV_Target
         // Retrieve the velocity from the previous row and dampen it.
         uv.y -= texelHeight;
         float3 v = tex2D(_VelocityBuffer, uv).xyz;
-        v *= exp(-_Drag * unity_DeltaTime.x);
-        return float4(v, 0);
+        return float4(v * _Drag, 0);
     }
 }
 

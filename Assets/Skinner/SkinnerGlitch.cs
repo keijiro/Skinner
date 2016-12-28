@@ -2,7 +2,7 @@
 
 namespace Skinner
 {
-    /// Emits glitchy triangles from the given Skinner source.
+    /// Emits glitchy triangles from a given Skinner source.
     [AddComponentMenu("Skinner/Skinner Glitch")]
     [RequireComponent(typeof(MeshRenderer))]
     public class SkinnerGlitch : MonoBehaviour

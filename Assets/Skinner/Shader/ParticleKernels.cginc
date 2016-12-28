@@ -1,3 +1,4 @@
+// Animation kernels for Skinner Particle
 #include "Common.cginc"
 #include "SimplexNoiseGrad3D.cginc"
 
@@ -7,48 +8,14 @@ sampler2D _PositionBuffer;
 sampler2D _VelocityBuffer;
 sampler2D _RotationBuffer;
 
-float2 _LifeParams;   // 1/min, 1/max
-float4 _Acceleration; // x, y, z, drag
-float3 _SpinParams;   // spin*2, speed-to-spin*2, randomness
-float2 _NoiseParams;  // freq, amp
+half2 _Damper;      // drag, speed_imit
+half3 _Gravity;
+half2 _Life;        // dt / max_life, dt / (max_life * speed_to_life)
+half2 _Spin;        // max_spin * dt, speed_to_spin * dt
+half2 _NoiseParams; // frequency, amplitude * dt
 float3 _NoiseOffset;
-float4 _Config;       // throttle, dT, time
 
-// Particle generator functions
-float4 NewParticlePosition(float2 uv)
-{
-    float3 p0 = tex2D(_SourcePositionBuffer0, uv).xyz;
-    float3 p1 = tex2D(_SourcePositionBuffer1, uv).xyz;
-    float3 v = (p1 - p0) / _Config.y;
-    return float4(p1, min(length(v) * 4 - 0.5, 0.5));
-
-/*
-    float3 p1 = tex2D(_SourcePositionBuffer1, uv).xyz;
-    return float4(p1, 0.5);
-    */
-}
-
-float4 NewParticleVelocity(float2 uv)
-{
-    float3 p0 = tex2D(_SourcePositionBuffer0, uv).xyz;
-    float3 p1 = tex2D(_SourcePositionBuffer1, uv).xyz;
-    float3 v = (p1 - p0) / _Config.y;
-    return float4(v, 0);
-}
-
-float4 NewParticleRotation(float2 uv)
-{
-    // Uniform random unit quaternion
-    // http://www.realtimerendering.com/resources/GraphicsGems/gemsiii/urot.c
-    float r = UVRandom(uv, 7);
-    float r1 = sqrt(1 - r);
-    float r2 = sqrt(r);
-    float t1 = UNITY_PI * 2 * UVRandom(uv, 8);
-    float t2 = UNITY_PI * 2 * UVRandom(uv, 9);
-    return float4(sin(t1) * r1, cos(t1) * r1, sin(t2) * r2, cos(t2) * r2);
-}
-
-// Deterministic random rotation axis
+// Deterministic random rotation axis.
 float3 RotationAxis(float2 uv)
 {
     // Uniformaly distributed points
@@ -60,44 +27,87 @@ float3 RotationAxis(float2 uv)
     return float3(u2 * cs, u2 * sn, u);
 }
 
+//
+// Generator functions
+//
+
+float4 NewParticlePosition(float2 uv)
+{
+    // Randomize UV.
+    uv = float2(UVRandom(uv, _Time.x), 0.5);
+    // Simply use the vertex position.
+    float3 p = tex2D(_SourcePositionBuffer1, uv).xyz;
+    // Initialize with the full life (0.5).
+    return float4(p, 0.5);
+}
+
+float4 NewParticleVelocity(float2 uv)
+{
+    // Randomize UV.
+    uv = float2(UVRandom(uv, _Time.x), 0.5);
+    // Calculate the vertex velocity.
+    float3 p0 = tex2D(_SourcePositionBuffer0, uv).xyz;
+    float3 p1 = tex2D(_SourcePositionBuffer1, uv).xyz;
+    float3 v = (p1 - p0) * unity_DeltaTime.y;
+    // Randomize the velocity.
+    v *= 1 - UVRandom(uv, 12) * 0.5;
+    // w = initial velocity
+    return float4(v, length(v));
+}
+
+float4 NewParticleRotation(float2 uv)
+{
+    // Uniform random unit quaternion
+    // http://www.realtimerendering.com/resources/GraphicsGems/gemsiii/urot.c
+    float r = UVRandom(uv, 13);
+    float r1 = sqrt(1 - r);
+    float r2 = sqrt(r);
+    float t1 = UNITY_PI * 2 * UVRandom(uv, 14);
+    float t2 = UNITY_PI * 2 * UVRandom(uv, 15);
+    return float4(sin(t1) * r1, cos(t1) * r1, sin(t2) * r2, cos(t2) * r2);
+}
+
+//
 // Fragment shaders for initialization
+//
 
 float4 InitializePositionFragment(v2f_img i) : SV_Target
 {
-    // A far point and a random life
-    return float4(1e+6, 1e+6, 1e+6, UVRandom(i.uv, 0));
+    // A far point and a random life.
+    return float4(1e+6, 1e+6, 1e+6, UVRandom(i.uv, 16) - 0.5);
 }
 
 float4 InitializeVelocityFragment(v2f_img i) : SV_Target
 {
-    // Zero velocity
     return 0;
 }
 
 float4 InitializeRotationFragment(v2f_img i) : SV_Target
 {
-    // Zero rotation
-    return float4(0, 0, 0, 1);
+    return NewParticleRotation(i.uv);
 }
 
+//
 // Fragment shaders for update
+//
 
 float4 UpdatePositionFragment(v2f_img i) : SV_Target
 {
     float4 p = tex2D(_PositionBuffer, i.uv);
-    float3 v = tex2D(_VelocityBuffer, i.uv).xyz;
+    float4 v = tex2D(_VelocityBuffer, i.uv);
 
-    float lv = length(v);
-    if (lv > 0.1) v = normalize(v) * min(lv, 1);
-
-    // Decaying
-    float dt = _Config.y;
-    p.w -= lerp(_LifeParams.x, _LifeParams.y, UVRandom(i.uv, 12)) * dt;
+    // Decreaese the life value with a random scale.
+    float rnd = 1 + UVRandom(i.uv, 17) * 0.5;
+    p.w -= max(_Life.x,  _Life.y / v.w) * rnd;
 
     if (p.w > -0.5)
     {
-        // Applying the velocity
-        p.xyz += v * dt;
+        // Apply the velocity cap.
+        float lv = max(length(v.xyz), 1e-6);
+        v.xyz = v * min(lv, _Damper.y) / lv;
+
+        // Update the position with the velocity.
+        p.xyz += v.xyz * unity_DeltaTime.x;
         return p;
     }
     else
@@ -110,24 +120,19 @@ float4 UpdatePositionFragment(v2f_img i) : SV_Target
 float4 UpdateVelocityFragment(v2f_img i) : SV_Target
 {
     float4 p = tex2D(_PositionBuffer, i.uv);
-    float3 v = tex2D(_VelocityBuffer, i.uv).xyz;
+    float4 v = tex2D(_VelocityBuffer, i.uv);
 
     if (p.w < 0.5)
     {
-        // Drag
-        v *= _Acceleration.w; // dt is pre-applied in script
+        // Drag and acceleration.
+        v.xyz = v.xyz * _Damper.x + _Gravity.xyz;
 
-        // Constant acceleration
-        float dt = _Config.y;
-        v += _Acceleration.xyz * dt;
-
-        // Acceleration by turbulent noise
+        // Accelerate with the turbulent noise field.
         float3 np = (p.xyz + _NoiseOffset) * _NoiseParams.x;
         float3 n1 = snoise_grad(np);
         float3 n2 = snoise_grad(np + float3(21.83, 13.28, 7.32));
-        v += cross(n1, n2) * _NoiseParams.y * dt;
-
-        return float4(v, 0);
+        v.xyz += cross(n1, n2) * _NoiseParams.y;
+        return v;
     }
     else
     {
@@ -139,20 +144,17 @@ float4 UpdateVelocityFragment(v2f_img i) : SV_Target
 float4 UpdateRotationFragment(v2f_img i) : SV_Target
 {
     float4 r = tex2D(_RotationBuffer, i.uv);
-    float3 v = tex2D(_VelocityBuffer, i.uv).xyz;
+    float4 v = tex2D(_VelocityBuffer, i.uv);
 
-    // Delta angle
-    float dt = _Config.y;
-    float theta = (_SpinParams.x + length(v) * _SpinParams.y) * dt;
+    // Calculate the angular velocity.
+    float delta = min(_Spin.x, length(v.xyz) * _Spin.y);
+    delta *= 1 - UVRandom(i.uv, 18) * 0.5;
 
-    // Randomness
-    theta *= 1.0 - UVRandom(i.uv, 13) * _SpinParams.z;
-
-    // Spin quaternion
+    // Convert it to a quaternion.
     float sn, cs;
-    sincos(theta, sn, cs);
+    sincos(delta, sn, cs);
     float4 dq = float4(RotationAxis(i.uv) * sn, cs);
 
-    // Applying the quaternion and normalize the result.
+    // Apply the quaternion and normalize it.
     return normalize(QMult(dq, r));
 }

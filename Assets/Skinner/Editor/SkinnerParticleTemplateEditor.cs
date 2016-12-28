@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using System.IO;
-using System.Collections.Generic;
 
 namespace Skinner
 {
@@ -12,6 +11,12 @@ namespace Skinner
 
         SerializedProperty _shapes;
         SerializedProperty _maxInstanceCount;
+
+        const string _helpText = 
+            "The Skinner Particle renderer draws all particles in a single " +
+            "draw call, and thus the actual number of particle instances is " +
+            "limited by the number of vertices in the particle shapes; it " +
+            "may be less than the Max Instance Count.";
 
         void OnEnable()
         {
@@ -28,18 +33,14 @@ namespace Skinner
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_shapes, true);
-            EditorGUILayout.Space();
             EditorGUILayout.PropertyField(_maxInstanceCount);
             var rebuild = EditorGUI.EndChangeCheck();
 
             serializedObject.ApplyModifiedProperties();
 
-            EditorGUILayout.Space();
-
             // Readonly members
             EditorGUILayout.LabelField("Instance Count", template.instanceCount.ToString());
-
-            EditorGUILayout.Space();
+            EditorGUILayout.HelpBox(_helpText, MessageType.None);
 
             // Rebuild button
             rebuild |= GUILayout.Button("Rebuild");
@@ -61,7 +62,7 @@ namespace Skinner
                 path = "Assets";
             else if (Path.GetExtension(path) != "")
                 path = path.Replace(Path.GetFileName(path), "");
-            var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/Skinner Particle.asset");
+            var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/New Skinner Particle.asset");
 
             // Create a template asset.
             var asset = ScriptableObject.CreateInstance<SkinnerParticleTemplate>();

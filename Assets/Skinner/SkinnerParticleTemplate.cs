@@ -4,35 +4,31 @@ using System.Linq;
 
 namespace Skinner
 {
+    /// Template mesh asset used in SkinnerParticle
     public class SkinnerParticleTemplate : ScriptableObject
     {
         #region Public properties
 
-        /// Source shapes (editable)
-        public Mesh[] shapes {
-            get { return _shapes; }
-        }
+        /// List of meshes of particle shapes.
+        public Mesh[] shapes { get { return _shapes; } }
 
+        [Tooltip("List of meshes of particle shapes.")]
         [SerializeField] Mesh[] _shapes = new Mesh[1];
 
-        /// Maximum number of instances (editable)
-        public int maxInstanceCount {
-            get { return Mathf.Clamp(_maxInstanceCount, 1, 8192); }
-        }
+        /// Maximum number of particle instances.
+        public int maxInstanceCount { get { return _maxInstanceCount; } }
 
+        [Tooltip("Maximum number of particle instances.")]
         [SerializeField] int _maxInstanceCount = 8192;
 
-        /// Instance count (read only)
-        public int instanceCount {
-            get { return _instanceCount; }
-        }
+        /// Actual number of particle instances.
+        /// This value may be less than maxInstanceCount.
+        public int instanceCount { get { return _instanceCount; } }
 
         [SerializeField] int _instanceCount;
 
-        /// Tmplate mesh (read only)
-        public Mesh mesh {
-            get { return _mesh; }
-        }
+        /// Tmplate mesh object.
+        public Mesh mesh { get { return _mesh; } }
 
         [SerializeField] Mesh _mesh;
 
@@ -55,10 +51,8 @@ namespace Skinner
 
         #if UNITY_EDITOR
 
-        // Template mesh rebuilding method
         public void RebuildMesh()
         {
-            // Working buffers
             var vtx_out = new List<Vector3>();
             var nrm_out = new List<Vector3>();
             var tan_out = new List<Vector4>();
@@ -66,18 +60,18 @@ namespace Skinner
             var uv1_out = new List<Vector2>();
             var idx_out = new List<int>();
 
-            // Vertex/instance count
-            var vcount = 0;
+            var vertexCount = 0;
             _instanceCount = 0;
 
+            // Push the source shapes one by one into the temporary array.
             while (_instanceCount < maxInstanceCount)
             {
-                // Get the Nth Source mesh.
+                // Get the N-th Source mesh.
                 var mesh = GetShape(_instanceCount);
                 var vtx_in = mesh.vertices;
 
                 // Keep the vertex count under 64k.
-                if (vcount + vtx_in.Length > 65535) break;
+                if (vertexCount + vtx_in.Length > 65535) break;
 
                 // Copy the vertices.
                 vtx_out.AddRange(vtx_in);
@@ -90,18 +84,17 @@ namespace Skinner
                 uv1_out.AddRange(Enumerable.Repeat(uv1, vtx_in.Length));
 
                 // Copy the indices.
-                foreach (var i in mesh.triangles) idx_out.Add(i + vcount);
+                idx_out.AddRange(mesh.triangles.Select(i => i + vertexCount));
 
                 // Increment the vertex/instance count.
-                vcount += vtx_in.Length;
+                vertexCount += vtx_in.Length;
                 _instanceCount++;
             }
 
             // Rescale the UV1.
-            for (var i = 0; i < vcount; i++)
-                uv1_out[i] /= _instanceCount;
+            uv1_out = uv1_out.Select(x => x / instanceCount).ToList();
 
-            // Reset the mesh asset.
+            // Rebuild the mesh asset.
             _mesh.Clear();
             _mesh.SetVertices(vtx_out);
             _mesh.SetNormals(nrm_out);
@@ -117,6 +110,11 @@ namespace Skinner
         #endregion
 
         #region ScriptableObject functions
+
+        void OnValidate()
+        {
+            _maxInstanceCount = Mathf.Clamp(_maxInstanceCount, 4, 8192);
+        }
 
         void OnEnable()
         {

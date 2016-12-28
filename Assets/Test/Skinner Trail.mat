@@ -36,22 +36,22 @@ Material:
     m_Floats:
     - first:
         name: _BaseHue
-      second: 0.4
+      second: 0.29
     - first:
         name: _Brightness
-      second: 3.57
+      second: 1.82
     - first:
         name: _BrightnessOffs
-      second: 2.51
+      second: 4.72
     - first:
         name: _EmissionProb
       second: 0.28
     - first:
         name: _HueRandomness
-      second: 0
+      second: 0.19
     - first:
         name: _HueShift
-      second: 0.41
+      second: 0.49
     - first:
         name: _Metallic
       second: 0.49

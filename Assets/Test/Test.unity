@@ -596,14 +596,14 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!33 &874903610
 MeshFilter:
   m_ObjectHideFlags: 8
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 874903609}
-  m_Mesh: {fileID: 43000011690721628, guid: 2d687eaea768ef94b9c5547a00075b42, type: 2}
+  m_Mesh: {fileID: 43000011374488990, guid: a1c0dbc1e8b9d3b4f8a2691f638256de, type: 2}
 --- !u!4 &874903611
 Transform:
   m_ObjectHideFlags: 0
@@ -628,23 +628,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02f6f3d960e4a9049aa3480de874d5a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _source: {fileID: 0}
-  _throttle: 1
-  _life: 2
-  _lifeRandomness: 0.6
-  _acceleration: {x: 0, y: 0, z: 0}
-  _drag: 0.8
-  _spin: 50
-  _speedToSpin: 250
-  _spinRandomness: 0.4
-  _noiseAmplitude: 0.1
+  _source: {fileID: 1799048012}
+  _template: {fileID: 11400000, guid: a1c0dbc1e8b9d3b4f8a2691f638256de, type: 2}
+  _speedLimit: 2
+  _drag: 4
+  _gravity: {x: 0, y: 0, z: 0}
+  _speedToLife: 0.18
+  _maxLife: 1.66
+  _speedToSpin: 2000
+  _maxSpin: 4000
+  _speedToScale: 0.1
+  _maxScale: 0.7
+  _noiseAmplitude: 0.4
   _noiseFrequency: 0.5
   _noiseMotion: 1
-  _template: {fileID: 11400000, guid: 2d687eaea768ef94b9c5547a00075b42, type: 2}
-  _scale: 0.3
-  _scaleRandomness: 0.5
   _randomSeed: 0
-  _kernels: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
+  _kernelShader: {fileID: 0}
   _defaultMaterial: {fileID: 2100000, guid: 005a7e4fcd9a6154eb336c33fa0ac837, type: 2}
 --- !u!23 &874903613
 MeshRenderer:
@@ -659,7 +658,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_Materials:
-  - {fileID: 2100000, guid: 005a7e4fcd9a6154eb336c33fa0ac837, type: 2}
+  - {fileID: 2100000, guid: c66a9abad84e86a479d0a7579547d21d, type: 2}
   m_SubsetIndices: 
   m_StaticBatchRoot: {fileID: 0}
   m_ProbeAnchor: {fileID: 0}
@@ -772,7 +771,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1322369290
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -26,8 +26,8 @@ Shader "Skinner/Trail"
         _HueShift("Hue Shift", Range(-1, 1)) = 0.2
 
         [HideInInspector] _PositionBuffer("", 2D) = ""{}
-        [HideInInspector] _VelocityTex("", 2D) = ""{}
-        [HideInInspector] _BasisBuffer("", 2D) = ""{}
+        [HideInInspector] _VelocityBuffer("", 2D) = ""{}
+        [HideInInspector] _OrthnormBuffer("", 2D) = ""{}
     }
     SubShader
     {
