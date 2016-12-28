@@ -67,8 +67,8 @@ MonoBehaviour:
   depthOfField:
     m_Enabled: 0
     m_Settings:
-      focusDistance: 3.28
-      aperture: 1.6
+      focusDistance: 4.63
+      aperture: 2
       focalLength: 50
       useCameraFov: 1
       kernelSize: 1
@@ -97,7 +97,7 @@ MonoBehaviour:
       bloom:
         intensity: 1
         threshold: 1.2
-        softKnee: 0.379
+        softKnee: 0
         radius: 7
         antiFlicker: 0
       lensDirt:
@@ -115,11 +115,11 @@ MonoBehaviour:
         neutralWhiteLevel: 5.3
         neutralWhiteClip: 10
       basic:
-        postExposure: 0.63
+        postExposure: 0.8
         temperature: 0
         tint: 0
         hueShift: 0
-        saturation: 1
+        saturation: 1.1
         contrast: 1
       channelMixer:
         red: {x: 1, y: 0, z: 0}
@@ -143,13 +143,13 @@ MonoBehaviour:
             m_Curve:
             - time: 0
               value: 0
-              inSlope: 1
-              outSlope: 1
+              inSlope: 1.7685406
+              outSlope: 1.7685406
               tangentMode: 0
-            - time: 1
+            - time: 0.96153843
               value: 1
-              inSlope: 1
-              outSlope: 1
+              inSlope: 1.2141966
+              outSlope: 1.2141966
               tangentMode: 0
             m_PreInfinity: 2
             m_PostInfinity: 2

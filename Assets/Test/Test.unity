@@ -275,7 +275,7 @@ MonoBehaviour:
   _noiseFrequency: 0.5
   _noiseMotion: 1
   _randomSeed: 0
-  _kernelShader: {fileID: 0}
+  _kernelShader: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
   _defaultMaterial: {fileID: 2100000, guid: 005a7e4fcd9a6154eb336c33fa0ac837, type: 2}
 --- !u!23 &265396953
 MeshRenderer:
@@ -738,7 +738,7 @@ MonoBehaviour:
   _noiseFrequency: 0.5
   _noiseMotion: 1
   _randomSeed: 0
-  _kernelShader: {fileID: 0}
+  _kernelShader: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
   _defaultMaterial: {fileID: 2100000, guid: 005a7e4fcd9a6154eb336c33fa0ac837, type: 2}
 --- !u!23 &874903613
 MeshRenderer:
