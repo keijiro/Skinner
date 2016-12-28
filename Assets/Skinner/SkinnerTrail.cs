@@ -103,7 +103,7 @@ namespace Skinner
         void InvokeAnimationKernels()
         {
             if (_kernel == null)
-                _kernel = new AnimationKernelSet<Kernels, Buffers>(_kernelShader);
+                _kernel = new AnimationKernelSet<Kernels, Buffers>(_kernelShader, x => (int)x, x => (int)x);
 
             if (!_kernel.ready)
             {

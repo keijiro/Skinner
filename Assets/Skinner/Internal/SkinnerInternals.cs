@@ -20,7 +20,17 @@ namespace Skinner
         where KernelEnum : struct
         where BufferEnum : struct
     {
+        #region Enum to int converter delegates
+
+        public delegate int KernelEnumToInt(KernelEnum e);
+        public delegate int BufferEnumToInt(BufferEnum e);
+
+        #endregion
+
         #region Private variables
+
+        KernelEnumToInt _getKernelIndex;
+        BufferEnumToInt _getBufferIndex;
 
         Shader _shader;
         Material _material;
@@ -47,14 +57,14 @@ namespace Skinner
         /// Returns the buffer that was updated in the last frame.
         public RenderTexture GetLastBuffer(BufferEnum buffer)
         {
-            var index = Convert.ToInt32(buffer);
+            var index = _getBufferIndex(buffer);
             return _buffers[_swapFlag ? index + _buffers.Length / 2 : index];
         }
 
         /// Return the buffer that is going to be updated in the current (or next) frame.
         public RenderTexture GetWorkingBuffer(BufferEnum buffer)
         {
-            var index = Convert.ToInt32(buffer);
+            var index = _getBufferIndex(buffer);
             return _buffers[_swapFlag ? index : index + _buffers.Length / 2];
         }
 
@@ -64,9 +74,11 @@ namespace Skinner
 
         /// Construct with a given shader.
         /// Just initializes internal variables; does nothing serious.
-        public AnimationKernelSet(Shader shader)
+        public AnimationKernelSet(Shader shader, KernelEnumToInt k2i, BufferEnumToInt b2i)
         {
             _shader = shader;
+            _getKernelIndex = k2i;
+            _getBufferIndex = b2i;
 
             // Just allocate an array for buffers.
             var enumCount = Enum.GetValues(typeof(BufferEnum)).Length;
@@ -112,10 +124,9 @@ namespace Skinner
         }
 
         /// Invoke a kernel and output to a given buffer.
-        public void Invoke(KernelEnum pass, BufferEnum buffer)
+        public void Invoke(KernelEnum kernel, BufferEnum buffer)
         {
-            var index = Convert.ToInt32(pass);
-            Graphics.Blit(null, GetWorkingBuffer(buffer), _material, index);
+            Graphics.Blit(null, GetWorkingBuffer(buffer), _material, _getKernelIndex(kernel));
         }
 
         /// Swap the double buffers.
