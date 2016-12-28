@@ -48,7 +48,7 @@ Shader "Skinner/Particle/Two-Sided, Non-Textured"
         #pragma surface surf Standard vertex:vert nolightmap addshadow
         #pragma target 3.0
         #pragma multi_compile __ UNITY_COLORSPACE_GAMMA
-        #define TWO_SIDED
+        #define SKINNER_TWO_SIDED
         #include "ParticleSurface.cginc"
         ENDCG
     }

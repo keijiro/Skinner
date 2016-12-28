@@ -54,7 +54,7 @@ Shader "Skinner/Particle/Standard"
         #pragma surface surf Standard vertex:vert nolightmap addshadow
         #pragma target 3.0
         #pragma multi_compile __ UNITY_COLORSPACE_GAMMA
-        #define TEXTURED
+        #define SKINNER_TEXTURED
         #include "ParticleSurface.cginc"
         ENDCG
     }

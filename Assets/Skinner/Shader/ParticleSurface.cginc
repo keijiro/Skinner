@@ -11,7 +11,7 @@ half3 _Albedo;
 half _Smoothness;
 half _Metallic;
 
-#if defined(TEXTURED)
+#if defined(SKINNER_TEXTURED)
 sampler2D _AlbedoMap;
 sampler2D _NormalMap;
 half _NormalScale;
@@ -35,10 +35,10 @@ half _BrightnessOffs;
 
 struct Input
 {
-#if defined(TEXTURED)
+#if defined(SKINNER_TEXTURED)
     float2 uv_AlbedoMap;
 #endif
-#if defined(TWO_SIDED)
+#if defined(SKINNER_TWO_SIDED)
     fixed facing : VFACE;
 #endif
     fixed4 color : COLOR;
@@ -74,7 +74,7 @@ void vert(inout appdata_full data)
     // Modify the vertex attributes.
     data.vertex.xyz = RotateVector(data.vertex.xyz, r) * scale + p.xyz;
     data.normal = RotateVector(data.normal, r);
-#if defined(TEXTURED)
+#if defined(SKINNER_TEXTURED)
     data.tangent.xyz = RotateVector(data.tangent.xyz, r);
 #endif
     data.color.rgb = rgb;
@@ -82,15 +82,25 @@ void vert(inout appdata_full data)
 
 void surf(Input IN, inout SurfaceOutputStandard o)
 {
-#if defined(TEXTURED)
+#if defined(SKINNER_TEXTURED)
     o.Albedo = tex2D(_AlbedoMap, IN.uv_AlbedoMap).rgb * _Albedo;
-    o.Normal = UnpackScaleNormal(tex2D(_NormalMap, IN.uv_AlbedoMap), _NormalScale);
 #else
     o.Albedo = _Albedo;
-#if defined(TWO_SIDED)
-    o.Normal = float3(0, 0, IN.facing > 0 ? 1 : -1);
 #endif
+
+#if defined(SKINNER_TEXTURED)
+    half3 n = UnpackScaleNormal(tex2D(_NormalMap, IN.uv_AlbedoMap), _NormalScale);
+    #if defined(SKINNER_TWO_SIDED)
+    o.Normal = n * (IN.facing > 0 ? 1 : -1);
+    #else
+    o.Normal = n;
+    #endif
+#else
+    #if defined(SKINNER_TWO_SIDED)
+    o.Normal = half3(0, 0, IN.facing > 0 ? 1 : -1);
+    #endif
 #endif
+
     o.Smoothness = _Smoothness;
     o.Metallic = _Metallic;
     o.Emission = IN.color.rgb;
