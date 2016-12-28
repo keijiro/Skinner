@@ -52,3 +52,15 @@ half3 HueToRGB(half h)
     return GammaToLinearSpace(rgb);
 #endif
 }
+
+// Scale animation used in the particle shaders.
+float ParticleScale(float id, half life, half speed, half2 params)
+{
+    // Start/End
+    half s = min((1 - life) * 20, min(life * 3, 1));
+    // Scale by the initial speed.
+    s *= min(speed * params.y, params.x);
+    // 50% randomization
+    s *= 1 - 0.5 * UVRandom(id, 20);
+    return s;
+}

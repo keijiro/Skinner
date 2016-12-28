@@ -385,6 +385,8 @@ namespace Skinner
             if (_overrideProps == null)
                 _overrideProps = new MaterialPropertyBlock();
 
+            _overrideProps.SetTexture("_PreviousPositionBuffer", _positionBuffer1);
+            _overrideProps.SetTexture("_PreviousRotationBuffer", _rotationBuffer1);
             _overrideProps.SetTexture("_PositionBuffer", _positionBuffer2);
             _overrideProps.SetTexture("_VelocityBuffer", _velocityBuffer2);
             _overrideProps.SetTexture("_RotationBuffer", _rotationBuffer2);

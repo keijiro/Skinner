@@ -47,23 +47,16 @@ struct Input
 void vert(inout appdata_full data)
 {
     // Particle ID
-    half id = data.texcoord1.x;
+    float id = data.texcoord1.x;
 
     // Fetch the particle position/velocity/rotation.
     float4 p = tex2Dlod(_PositionBuffer, float4(id, 0.5, 0, 0));
     float4 v = tex2Dlod(_VelocityBuffer, float4(id, 0.5, 0, 0));
     float4 r = tex2Dlod(_RotationBuffer, float4(id, 0.5, 0, 0));
 
-    // Life/Speed
-    half life = p.w + 0.5;
+    // Speed/Scale
     half speed = length(v.xyz);
-
-    // Scale animation
-    float scale = min((1 - life) * 20, min(life * 3, 1));
-    // Scale by the initial speed.
-    scale *= min(v.w * _Scale.y, _Scale.x);
-    // 50% randomization
-    scale *= 1 - 0.5 * UVRandom(id, 20);
+    half scale = ParticleScale(id, p.w + 0.5, v.w, _Scale);
 
     // Low frequency oscillation with half-wave rectified sinusoid.
     half phase = UVRandom(id, 21) * 32 + _Time.y * 4;

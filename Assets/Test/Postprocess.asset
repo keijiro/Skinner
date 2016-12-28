@@ -20,10 +20,10 @@ MonoBehaviour:
       motionVectors:
         sourceOpacity: 1
         motionImageOpacity: 1
-        motionImageAmplitude: 17.4
+        motionImageAmplitude: 40
         motionVectorsOpacity: 1
         motionVectorsResolution: 24
-        motionVectorsAmplitude: 64
+        motionVectorsAmplitude: 40
   antialiasing:
     m_Enabled: 0
     m_Settings:
