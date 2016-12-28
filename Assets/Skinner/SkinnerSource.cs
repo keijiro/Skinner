@@ -96,16 +96,11 @@ namespace Skinner
             smr.sharedMesh = _model.mesh;
             smr.material = _placeholderMaterial;
             smr.receiveShadows = false;
-            smr.updateWhenOffscreen = true;
 
             // This renderer is disabled to hide from other cameras. It will be
             // enable by CullingStateController only while rendered from our
             // vertex baking camera.
             smr.enabled = false;
-
-            // Also try to modify the animator properties.
-            var animator = GetComponentInParent<Animator>();
-            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         }
 
         // Create a camera for vertex baking.
