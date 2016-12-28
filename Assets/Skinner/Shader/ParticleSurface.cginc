@@ -7,12 +7,15 @@ sampler2D _VelocityBuffer;
 sampler2D _RotationBuffer;
 
 // Base material properties
-sampler2D _AlbedoMap;
 half3 _Albedo;
-sampler2D _NormalMap;
-half _NormalScale;
 half _Smoothness;
 half _Metallic;
+
+#if defined(TEXTURED)
+sampler2D _AlbedoMap;
+sampler2D _NormalMap;
+half _NormalScale;
+#endif
 
 // Scale modifier
 float2 _Scale; // (min, max)
@@ -32,7 +35,12 @@ half _BrightnessOffs;
 
 struct Input
 {
+#if defined(TEXTURED)
     float2 uv_AlbedoMap;
+#endif
+#if defined(TWO_SIDED)
+    fixed facing : VFACE;
+#endif
     fixed4 color : COLOR;
 };
 
@@ -51,7 +59,7 @@ void vert(inout appdata_full data)
     half speed = length(v.xyz);
 
     // Scale animation
-    float scale = min((1 - life) * 10, min(life * 3, 1));
+    float scale = min((1 - life) * 20, min(life * 3, 1));
     // Scale by the initial speed.
     scale *= min(v.w * _Scale.y, _Scale.x);
     // 50% randomization
@@ -73,14 +81,23 @@ void vert(inout appdata_full data)
     // Modify the vertex attributes.
     data.vertex.xyz = RotateVector(data.vertex.xyz, r) * scale + p.xyz;
     data.normal = RotateVector(data.normal, r);
+#if defined(TEXTURED)
     data.tangent.xyz = RotateVector(data.tangent.xyz, r);
+#endif
     data.color.rgb = rgb;
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)
 {
+#if defined(TEXTURED)
     o.Albedo = tex2D(_AlbedoMap, IN.uv_AlbedoMap).rgb * _Albedo;
     o.Normal = UnpackScaleNormal(tex2D(_NormalMap, IN.uv_AlbedoMap), _NormalScale);
+#else
+    o.Albedo = _Albedo;
+#if defined(TWO_SIDED)
+    o.Normal = float3(0, 0, IN.facing > 0 ? 1 : -1);
+#endif
+#endif
     o.Smoothness = _Smoothness;
     o.Metallic = _Metallic;
     o.Emission = IN.color.rgb;

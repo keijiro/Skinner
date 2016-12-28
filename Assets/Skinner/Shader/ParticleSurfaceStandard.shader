@@ -1,5 +1,5 @@
-// Surface shader for Skinner Particle
-Shader "Skinner/Particle"
+// Surface shader for Skinner Particle (standard)
+Shader "Skinner/Particle/Standard"
 {
     Properties
     {
@@ -38,6 +38,7 @@ Shader "Skinner/Particle"
         #pragma surface surf Standard vertex:vert nolightmap addshadow
         #pragma target 3.0
         #pragma multi_compile __ UNITY_COLORSPACE_GAMMA
+        #define TEXTURED
         #include "ParticleSurface.cginc"
         ENDCG
     }
