@@ -7,7 +7,10 @@ sampler2D _VelocityBuffer;
 sampler2D _RotationBuffer;
 
 // Base material properties
+sampler2D _AlbedoMap;
 half3 _Albedo;
+sampler2D _NormalMap;
+half _NormalScale;
 half _Smoothness;
 half _Metallic;
 
@@ -29,6 +32,7 @@ half _BrightnessOffs;
 
 struct Input
 {
+    float2 uv_AlbedoMap;
     fixed4 color : COLOR;
 };
 
@@ -47,7 +51,7 @@ void vert(inout appdata_full data)
     half speed = length(v.xyz);
 
     // Scale animation
-    float scale = min(life * 3, 1);
+    float scale = min((1 - life) * 10, min(life * 3, 1));
     // Scale by the initial speed.
     scale *= min(v.w * _Scale.y, _Scale.x);
     // 50% randomization
@@ -75,8 +79,9 @@ void vert(inout appdata_full data)
 
 void surf(Input IN, inout SurfaceOutputStandard o)
 {
-    o.Albedo = _Albedo;
+    o.Albedo = tex2D(_AlbedoMap, IN.uv_AlbedoMap).rgb * _Albedo;
+    o.Normal = UnpackScaleNormal(tex2D(_NormalMap, IN.uv_AlbedoMap), _NormalScale);
     o.Smoothness = _Smoothness;
     o.Metallic = _Metallic;
-    o.Emission = IN.color;
+    o.Emission = IN.color.rgb;
 }

@@ -62,7 +62,7 @@ namespace Skinner
                 path = "Assets";
             else if (Path.GetExtension(path) != "")
                 path = path.Replace(Path.GetFileName(path), "");
-            var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/New Skinner Particle.asset");
+            var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/New Skinner Particle Template.asset");
 
             // Create a template asset.
             var asset = ScriptableObject.CreateInstance<SkinnerParticleTemplate>();

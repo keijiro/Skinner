@@ -3,7 +3,14 @@ Shader "Skinner/Particle"
 {
     Properties
     {
-        _Albedo("Albedo", Color) = (0.5, 0.5, 0.5)
+        _AlbedoMap("Albedo", 2D) = "white"{}
+        _Albedo("Color", Color) = (0.5, 0.5, 0.5)
+
+        [Space]
+        _NormalMap("Normal", 2D) = "bump"{}
+        _NormalScale("Scale", Range(0, 2)) = 1
+
+        [Space]
         _Smoothness("Smoothness", Range(0, 1)) = 0.5
         _Metallic("Metallic", Range(0, 1)) = 0
 
