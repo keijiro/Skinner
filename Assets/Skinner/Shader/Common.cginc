@@ -38,6 +38,14 @@ half3 StereoInverseProjection(half2 p)
     return float3(p.xy * d, 1 - d);
 }
 
+// Calculate the area of a triangle from the length of the sides.
+half TriangleArea(half a, half b, half c)
+{
+    // Heron's formula
+    half s = 0.5 * (a + b + c);
+    return sqrt(s * (s - a) * (s - b) * (s - c));
+}
+
 // Hue to RGB convertion
 half3 HueToRGB(half h)
 {
@@ -51,6 +59,34 @@ half3 HueToRGB(half h)
 #else
     return GammaToLinearSpace(rgb);
 #endif
+}
+
+// Common color animation
+half _BaseHue;
+half _HueRandomness;
+half _Saturation;
+half _Brightness;
+half _EmissionProb;
+half _HueShift;
+half _BrightnessOffs;
+
+half3 ColorAnimation(float id, half intensity)
+{
+    // Low frequency oscillation with half-wave rectified sinusoid.
+    half phase = UVRandom(id, 30) * 32 + _Time.y * 4;
+    half lfo = abs(sin(phase * UNITY_PI));
+
+    // Switch LFO randomly at zero-cross points.
+    lfo *= UVRandom(id + floor(phase), 31) < _EmissionProb;
+
+    // Hue animation.
+    half hue = _BaseHue + UVRandom(id, 32) * _HueRandomness + _HueShift * intensity;
+
+    // Convert to RGB.
+    half3 rgb = lerp(1, HueToRGB(hue), _Saturation);
+
+    // Apply brightness.
+    return rgb * (_Brightness * lfo + _BrightnessOffs * intensity);
 }
 
 // Scale animation used in the particle shaders.

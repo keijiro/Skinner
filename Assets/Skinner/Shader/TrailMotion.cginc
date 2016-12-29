@@ -33,7 +33,7 @@ struct v2f
 
 v2f vert(appdata data)
 {
-    // Fetch the vertex position/velocity/orthnormal.
+    // Fetch samples from the animatio kernel.
     float4 texcoord = float4(data.vertex.xy, 0, 0);
     float3 P0 = tex2Dlod(_PreviousPositionBuffer, texcoord).xyz;
     float3 V0 = tex2Dlod(_PreviousVelocityBuffer, texcoord).xyz;
@@ -42,28 +42,24 @@ v2f vert(appdata data)
     float3 V1 = tex2Dlod(_VelocityBuffer, texcoord).xyz;
     float4 B1 = tex2Dlod(_OrthnormBuffer, texcoord);
 
-    // Vertex speed
-    half speed0 = length(V0);
-    half speed1 = length(V1);
-
     // Binormal vector
     half3 binormal0 = StereoInverseProjection(B0.zw);
     half3 binormal1 = StereoInverseProjection(B1.zw);
 
     // Line width
     half width = _Width * data.vertex.z * (1 - data.vertex.y);
-    half width0 = width * smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, speed0);
-    half width1 = width * smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, speed1);
+    half width0 = width * smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, length(V0));
+    half width1 = width * smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, length(V1));
 
     // Modify the vertex positions.
-    P0 += binormal0 * width0;
-    P1 += binormal1 * width1;
+    float4 vp0 = float4(P0 + binormal0 * width0, 1);
+    float4 vp1 = float4(P1 + binormal1 * width1, 1);
 
     // Transfer the data to the pixel shader.
     v2f o;
-    o.vertex = UnityObjectToClipPos(float4(P1, 1));
-    o.transfer0 = mul(_PreviousVP, mul(_PreviousM,  float4(P0, 1)));
-    o.transfer1 = mul(_NonJitteredVP, mul(unity_ObjectToWorld, float4(P1, 1)));
+    o.vertex = UnityObjectToClipPos(vp1);
+    o.transfer0 = mul(_PreviousVP, mul(_PreviousM, vp0));
+    o.transfer1 = mul(_NonJitteredVP, mul(unity_ObjectToWorld, vp1));
     return o;
 }
 

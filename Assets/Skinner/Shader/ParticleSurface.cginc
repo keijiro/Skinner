@@ -20,18 +20,9 @@ half _NormalScale;
 // Scale modifier
 float2 _Scale; // (min, max)
 
-// Self illumination
-half _BaseHue;
-half _HueRandomness;
-half _Saturation;
-half _Brightness;
-half _EmissionProb;
-
-// Color animation
+// Color modifier
 half _SpeedToLightMin;
 half _SpeedToLightMax;
-half _HueShift;
-half _BrightnessOffs;
 
 struct Input
 {
@@ -49,35 +40,23 @@ void vert(inout appdata_full data)
     // Particle ID
     float id = data.texcoord1.x;
 
-    // Fetch the particle position/velocity/rotation.
-    float4 p = tex2Dlod(_PositionBuffer, float4(id, 0.5, 0, 0));
-    float4 v = tex2Dlod(_VelocityBuffer, float4(id, 0.5, 0, 0));
-    float4 r = tex2Dlod(_RotationBuffer, float4(id, 0.5, 0, 0));
+    // Fetch samples from the animation kernel.
+    float4 texcoord = float4(id, 0.5, 0, 0);
+    float4 P = tex2Dlod(_PositionBuffer, texcoord);
+    float4 V = tex2Dlod(_VelocityBuffer, texcoord);
+    float4 R = tex2Dlod(_RotationBuffer, texcoord);
 
-    // Speed/Scale
-    half speed = length(v.xyz);
-    half scale = ParticleScale(id, p.w + 0.5, v.w, _Scale);
-
-    // Low frequency oscillation with half-wave rectified sinusoid.
-    half phase = UVRandom(id, 21) * 32 + _Time.y * 4;
-    half lfo = abs(sin(phase * UNITY_PI));
-
-    // Switch LFO randomly at zero-cross points.
-    lfo *= UVRandom(id + floor(phase), 22) < _EmissionProb;
-
-    // Calculate HSB and convert it to RGB.
-    half intensity = smoothstep(_SpeedToLightMin, _SpeedToLightMax, speed);
-    half hue = _BaseHue + UVRandom(id, 2) * _HueRandomness + _HueShift * intensity;
-    half3 rgb = lerp(1, HueToRGB(hue), _Saturation);
-    rgb *= _Brightness * lfo + _BrightnessOffs * intensity;
+    // Attribute modifiers
+    half scale = ParticleScale(id, P.w + 0.5, V.w, _Scale);
+    half intensity = smoothstep(_SpeedToLightMin, _SpeedToLightMax, length(V.xyz));
 
     // Modify the vertex attributes.
-    data.vertex.xyz = RotateVector(data.vertex.xyz, r) * scale + p.xyz;
-    data.normal = RotateVector(data.normal, r);
+    data.vertex.xyz = RotateVector(data.vertex.xyz, R) * scale + P.xyz;
+    data.normal = RotateVector(data.normal, R);
 #if defined(SKINNER_TEXTURED)
-    data.tangent.xyz = RotateVector(data.tangent.xyz, r);
+    data.tangent.xyz = RotateVector(data.tangent.xyz, R);
 #endif
-    data.color.rgb = rgb;
+    data.color.rgb = ColorAnimation(id, intensity);
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)

@@ -32,24 +32,26 @@ v2f vert(appdata data)
     // Particle ID
     float id = data.texcoord1.x;
 
-    // Position/Rotation/Scale
-    float4 p0 = tex2Dlod(_PreviousPositionBuffer, float4(id, 0.5, 0, 0));
-    float4 r0 = tex2Dlod(_PreviousRotationBuffer, float4(id, 0.5, 0, 0));
-    float4 p1 = tex2Dlod(_PositionBuffer, float4(id, 0.5, 0, 0));
-    float4 v1 = tex2Dlod(_VelocityBuffer, float4(id, 0.5, 0, 0));
-    float4 r1 = tex2Dlod(_RotationBuffer, float4(id, 0.5, 0, 0));
-    half s0 = ParticleScale(id, p0.w + 0.5, v1.w, _Scale);
-    half s1 = ParticleScale(id, p1.w + 0.5, v1.w, _Scale);
+    // Fetch samples from the animatio kernel.
+    float4 P0 = tex2Dlod(_PreviousPositionBuffer, float4(id, 0.5, 0, 0));
+    float4 R0 = tex2Dlod(_PreviousRotationBuffer, float4(id, 0.5, 0, 0));
+    float4 P1 = tex2Dlod(_PositionBuffer, float4(id, 0.5, 0, 0));
+    float4 V1 = tex2Dlod(_VelocityBuffer, float4(id, 0.5, 0, 0));
+    float4 R1 = tex2Dlod(_RotationBuffer, float4(id, 0.5, 0, 0));
 
-    // Apply the local transformation.
-    float3 vp0 = RotateVector(data.vertex.xyz, r0) * s0 + p0.xyz;
-    float3 vp1 = RotateVector(data.vertex.xyz, r1) * s1 + p1.xyz;
+    // Scale animation
+    half s0 = ParticleScale(id, P0.w + 0.5, V1.w, _Scale); // ok for borrowing V1.w?
+    half s1 = ParticleScale(id, P1.w + 0.5, V1.w, _Scale);
+
+    // Modify the vertex positions.
+    float4 vp0 = float4(RotateVector(data.vertex.xyz, R0) * s0 + P0.xyz, 1);
+    float4 vp1 = float4(RotateVector(data.vertex.xyz, R1) * s1 + P1.xyz, 1);
 
     // Transfer the data to the pixel shader.
     v2f o;
-    o.vertex = UnityObjectToClipPos(float4(vp1, 1));
-    o.transfer0 = mul(_PreviousVP, mul(_PreviousM,  float4(vp0, 1)));
-    o.transfer1 = mul(_NonJitteredVP, mul(unity_ObjectToWorld, float4(vp1, 1)));
+    o.vertex = UnityObjectToClipPos(vp1);
+    o.transfer0 = mul(_PreviousVP, mul(_PreviousM, vp0));
+    o.transfer1 = mul(_NonJitteredVP, mul(unity_ObjectToWorld, vp1));
     return o;
 }
 
