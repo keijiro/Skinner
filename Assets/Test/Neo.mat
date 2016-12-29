@@ -75,7 +75,7 @@ Material:
       second: 1
     - first:
         name: _Cutoff
-      second: 0.5
+      second: 0.092
     - first:
         name: _DetailNormalMapScale
       second: 1
@@ -104,6 +104,9 @@ Material:
         name: _Parallax
       second: 0.02
     - first:
+        name: _Smoothness
+      second: 0.5
+    - first:
         name: _SmoothnessTextureChannel
       second: 0
     - first:
@@ -116,12 +119,21 @@ Material:
         name: _UVSec
       second: 0
     - first:
+        name: _Voxelize
+      second: 0.08
+    - first:
         name: _ZWrite
       second: 1
     m_Colors:
     - first:
+        name: _Albedo
+      second: {r: 1, g: 1, b: 1, a: 1}
+    - first:
         name: _Color
       second: {r: 0.33639705, g: 0.42049634, b: 0.44852942, a: 1}
+    - first:
+        name: _Emission
+      second: {r: 0.9220588, g: 1.0705477, b: 1.1, a: 1}
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}
