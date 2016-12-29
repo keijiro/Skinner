@@ -69,14 +69,14 @@ namespace Skinner
 
         #region Particle life (duration) settings
 
-        /// Determines the duration of a particle based on its initial speed.
+        /// Changes the duration of a particle based on its initial speed.
         public float speedToLife {
             get { return _speedToLife; }
             set { _speedToLife = value; }
         }
 
         [SerializeField]
-        [Tooltip("Determines the duration of a particle based on its initial speed.")]
+        [Tooltip("Changes the duration of a particle based on its initial speed.")]
         float _speedToLife = 4.0f;
 
         /// The maximum duration of particles.
@@ -93,14 +93,14 @@ namespace Skinner
 
         #region Spin (rotational movement) settings
 
-        /// Determines the angular velocity of a particle based on its speed.
+        /// Changes the angular velocity of a particle based on its speed.
         public float speedToSpin {
             get { return _speedToSpin; }
             set { _speedToSpin = value; }
         }
 
         [SerializeField]
-        [Tooltip("Determines the angular velocity of a particle based on its speed.")]
+        [Tooltip("Changes the angular velocity of a particle based on its speed.")]
         float _speedToSpin = 60.0f;
 
         /// The maximum angular velocity of particles.
@@ -117,14 +117,14 @@ namespace Skinner
 
         #region Particle scale settings
 
-        /// Determines the scale of a particle based on its initial speed.
+        /// Changes the scale of a particle based on its initial speed.
         public float speedToScale {
             get { return _speedToScale; }
             set { _speedToScale = value; }
         }
 
         [SerializeField]
-        [Tooltip("Determines the scale of a particle based on its initial speed.")]
+        [Tooltip("Changes the scale of a particle based on its initial speed.")]
         float _speedToScale = 0.5f;
 
         /// The maximum scale of particles.

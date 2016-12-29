@@ -19,24 +19,24 @@ namespace Skinner
         [Tooltip("Reference to an effect source.")]
         SkinnerSource _source;
 
-        /// Length of the frame history.
+        /// Length of the frame history buffer.
         public int historyLength {
             get { return _historyLength; }
             set { _historyLength = value; _reconfigured = true; }
         }
 
         [SerializeField]
-        [Tooltip("Length of the frame history.")]
+        [Tooltip("Length of the frame history buffer.")]
         int _historyLength = 256;
 
-        /// Determines how the effect elements inherit the source velocity.
+        /// Determines how an effect element inherit a source velocity.
         public float velocityScale {
             get { return _velocityScale; }
             set { _velocityScale = value; }
         }
 
         [SerializeField, Range(0, 1)]
-        [Tooltip("Determines how the effect elements inherit the source velocity.")]
+        [Tooltip("Determines how an effect element inherit a source velocity.")]
         float _velocityScale = 0.2f;
 
         /// Triangles that have longer edges than this value will be culled.

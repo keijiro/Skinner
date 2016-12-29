@@ -29,9 +29,9 @@ namespace Skinner
 
         SerializedProperty _randomSeed;
 
-        static GUIContent _labelSpeedToLife = new GUIContent("Life/Speed");
-        static GUIContent _labelSpeedToSpin = new GUIContent("Spin/Speed");
-        static GUIContent _labelSpeedToScale = new GUIContent("Scale/Speed");
+        static GUIContent _labelSpeedToLife = new GUIContent("Life by Speed");
+        static GUIContent _labelSpeedToSpin = new GUIContent("Spin by Speed");
+        static GUIContent _labelSpeedToScale = new GUIContent("Scale by Speed");
 
         void OnEnable()
         {

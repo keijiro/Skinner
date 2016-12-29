@@ -19,7 +19,7 @@ namespace Skinner
 
         SerializedProperty _randomSeed;
 
-        static GUIContent _labelSpeedToWidth = new GUIContent("Width/Speed");
+        static GUIContent _labelSensitivity = new GUIContent("Sensitivity");
 
         void OnEnable()
         {
@@ -54,8 +54,9 @@ namespace Skinner
 
             EditorGUILayout.Space();
 
+            EditorGUILayout.LabelField("Line Width Modifier (By Speed)", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(_cutoffSpeed);
-            EditorGUILayout.PropertyField(_speedToWidth, _labelSpeedToWidth);
+            EditorGUILayout.PropertyField(_speedToWidth, _labelSensitivity);
             EditorGUILayout.PropertyField(_maxWidth);
 
             EditorGUILayout.Space();
