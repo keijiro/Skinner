@@ -68,6 +68,9 @@ Material:
         name: _Metallic
       second: 0.53
     - first:
+        name: _ModDuration
+      second: 0.03
+    - first:
         name: _Probability
       second: 0.2
     - first:

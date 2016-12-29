@@ -16,7 +16,7 @@ half _EdgeThreshold;
 half _AreaThreshold;
 
 // Color modifier
-half _AttackLength;
+half _ModDuration;
 
 struct Input
 {
@@ -61,7 +61,7 @@ void vert(inout appdata_full data)
     // Finally, we can do something fun!
     float decay = pow(1 - voffs, 6);
     half scale = saturate(1 - max(ecull, acull)) * decay;
-    half intensity = smoothstep(0.9 - _AttackLength * 0.9, 0.95, decay);
+    half intensity = (1 - smoothstep(_ModDuration * 0.5, _ModDuration, voffs)) * decay;
 
     // Modify the vertex attributes.
     data.vertex.xyz = lerp(center, p0, scale);

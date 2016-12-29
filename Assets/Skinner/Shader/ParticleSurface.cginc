@@ -21,8 +21,8 @@ half _NormalScale;
 float2 _Scale; // (min, max)
 
 // Color modifier
-half _SpeedToLightMin;
-half _SpeedToLightMax;
+half _CutoffSpeed;
+half _SpeedToIntensity;
 
 struct Input
 {
@@ -47,8 +47,9 @@ void vert(inout appdata_full data)
     float4 R = tex2Dlod(_RotationBuffer, texcoord);
 
     // Attribute modifiers
+    half speed = length(V.xyz);
     half scale = ParticleScale(id, P.w + 0.5, V.w, _Scale);
-    half intensity = smoothstep(_SpeedToLightMin, _SpeedToLightMax, length(V.xyz));
+    half intensity = saturate((speed - _CutoffSpeed) * _SpeedToIntensity);
 
     // Modify the vertex attributes.
     data.vertex.xyz = RotateVector(data.vertex.xyz, R) * scale + P.xyz;

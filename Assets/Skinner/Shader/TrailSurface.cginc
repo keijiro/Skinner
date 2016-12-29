@@ -15,8 +15,8 @@ half _Metallic;
 half3 _LineWidth; // (max width, cutoff, speed-to-width / max width)
 
 // Color modifier
-half _SpeedToLightMin;
-half _SpeedToLightMax;
+half _CutoffSpeed;
+half _SpeedToIntensity;
 
 struct Input
 {
@@ -45,7 +45,7 @@ void vert(inout appdata_full data)
     half width = _LineWidth.x * data.vertex.z * (1 - data.vertex.y);
     width *= saturate((speed - _LineWidth.y) * _LineWidth.z);
 
-    half intensity = smoothstep(_SpeedToLightMin, _SpeedToLightMax, speed);
+    half intensity = saturate((speed - _CutoffSpeed) * _SpeedToIntensity);
 
     // Modify the vertex attributes.
     data.vertex = float4(P + binormal * width, data.vertex.w);

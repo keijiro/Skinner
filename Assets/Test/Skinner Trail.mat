@@ -22,7 +22,31 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:
+        name: _OrthnormBuffer
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
         name: _PositionBuffer
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _PreviousOrthnormBuffer
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _PreviousPositionBuffer
+      second:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - first:
+        name: _VelocityBuffer
       second:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -42,16 +66,19 @@ Material:
       second: 1.82
     - first:
         name: _BrightnessOffs
-      second: 4.72
+      second: 3
+    - first:
+        name: _CutoffSpeed
+      second: 1.5
     - first:
         name: _EmissionProb
-      second: 0.28
+      second: 0.054
     - first:
         name: _HueRandomness
       second: 0.19
     - first:
         name: _HueShift
-      second: 0.49
+      second: -0.31
     - first:
         name: _Metallic
       second: 0.49
@@ -61,6 +88,9 @@ Material:
     - first:
         name: _Smoothness
       second: 0.55
+    - first:
+        name: _SpeedToIntensity
+      second: 0.8
     - first:
         name: _SpeedToLightMax
       second: 5
