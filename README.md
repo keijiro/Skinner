@@ -1,28 +1,33 @@
 Skinner
 =======
 
+![gif](http://68.media.tumblr.com/6c5f9ef37b27048e406baf00c7ddd5d1/tumblr_oir3z03Vaf1qio469o3_320.gif)
+![gif](http://68.media.tumblr.com/c0b9c3d6104449b5025132ef825eed01/tumblr_ohidp0DLyk1qio469o1_320.gif)
+
 *Skinner* is a collection of special effects that use vertices of an animating
-SkinnedMeshRenderer as emitting points. It uses a special replacement shader to
-convert vertex positions into GPU-friendly data, and thus it avoids spending
-extra memory and CPU time (uses GPU resources instead).
+skinned mesh as emitting points. It uses a special [replacement shader]
+[ShaderRep] to convert vertex positions into GPU-friendly data, and thus it
+avoids spending extra memory and CPU time (uses GPU resources instead).
+
+[ShaderRep]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
 
 Skinner Asset Types
 -------------------
 
-*Skinner* provides some special asset types to preprocess required data.
+*Skinner* provides some special asset types to preprocess relevant data.
 
 ### Skinner Model
 
-*Skinner Model* is an asset type of a converted mesh that only has vertices and
-weight attributes. All triangles and overlapped vertices are stripped when
-converted from an original mesh.
+A *Skinner model* is a simplified variant of a mesh asset that only has
+vertices and skin weights. All topological data of triangles are removed, and
+also overlapped vertices are stripped when converted from an original mesh.
 
 ### Skinner Template
 
-*Skinner Template* is a pre-built mesh asset that provides vertices and
-topologies to the effect renderers. For instance, *Skinner Particle Template*
-has thousands of particle instances placed at the origin; *Skinner Particle
-Renderer* will move these instances on-the-fly.
+A *Skinner template* is a pre-built mesh asset that provides vertices and
+topological data to the effect renderers. For instance, a *Skinner particle
+template* has thousands of particle instances that are placed at the world
+origin; A *Skinner particle renderer* moves them at run time.
 
 Skinner Component Classes
 -------------------------
