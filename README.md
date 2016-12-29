@@ -67,26 +67,29 @@ clicks are needed to select it. See the GIF below.
 
 Drag and drop a character prefab to the scene.
 
-### Add *Skinner Source* to Skinned Mesh Renderer.
+### Attach a *Skinner source* to a skinned mesh renderer.
 
-Add the *Skinner Source* component to the game object that has a Skinned Mesh
-Renderer component. Then set the *Skinner Model* converted in the previous step
-to the *Model* property.  
+Add a *Skinner source* component to the game object that has a skinned mesh
+renderer component. Then set the *Skinner model* converted in the previous step
+to the *model* property.  
 
-This *Skinner Source* will override the Skinned Mesh Renderer and use it to
+![screenshot](http://i.imgur.com/sbBQROv.png)
+
+This *Skinner source* will override the skinned mesh renderer and then use it to
 convert vertex data. **Note that this character will disappear from the scene,**
-because it will be exclusively used for vertex baking. If it has to keep
-visible, you should add the same character to the scene as another game object.
+because it will be exclusively used for vertex conversion. If it has to keep
+visible, another instance of the same character should be added to the scene as
+a substitution.
 
-### Create a *Skinner Renderer* object.
+### Create a *Skinner renderer* object.
 
-Create an empty game object and add one of the *Skinner Renderer* components to
-it. Then set the *Source* property in it to refer to the *Skinner Source* object
+Create an empty game object and add one of the *Skinner renderer* components to
+it. Then set the *source* property in it to refer to the *Skinner source* object
 created in the previous step.
 
-For starters, it's recommended to use the *Skinner Debug* component that simply
+For starters, it's recommended to use the *Skinner debug* component that simply
 visualizes the vertex data provided from the source. If it shows nothing, there
-is something wrong with the previous steps.
+may be something wrong in the previous steps.
 
 Skinner Renderer Components
 ---------------------------
