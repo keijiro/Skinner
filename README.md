@@ -1,3 +1,4 @@
+
 Skinner
 =======
 
@@ -9,8 +10,6 @@ skinned mesh as emitting points. It uses a special [replacement shader]
 [ShaderRep] to convert vertex positions into GPU-friendly data, and thus it
 avoids spending extra memory and CPU time for handling them (uses GPU
 resources instead).
-
-[ShaderRep]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
 
 Skinner Asset Types
 -------------------
@@ -50,6 +49,10 @@ Then it creates some interesting special effects.
 
 How to Set Up
 -------------
+
+### Install the package.
+
+Download the package file from [here][download] and install it to a project.
 
 ### Convert a skinned mesh into a skinner model.
 
@@ -144,4 +147,6 @@ License
 
 MIT.
 
+[ShaderRep]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
+[download]: https://github.com/keijiro/Skinner/blob/master/Skinner.unitypackage
 [//]: # (9012345678901234567890123456789012345678901234567890123456789012345678)
