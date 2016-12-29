@@ -48,17 +48,20 @@ The *Skinner renderer* components are special types of mesh renderers that
 deform a *Skinner template* based on data provided from a *Skinner source*.
 Then it creates some interesting special effects.
 
-How To Set Up
+How to Set Up
 -------------
 
 ### Convert a skinned mesh into a skinner model.
 
-Skinned mesh models have to be converted into skinner model data before using.
-This can be done from the context menu; click a mesh asset at first, then
-select *Skinner* -> *Convert Mesh* from the right click menu.
+Skinned mesh have to be converted into a *Skinner model* in advance to be
+used in the *Skinner* system. This can be done from the context menu; click a
+mesh asset to select, then choose *Skinner* -> *Convert Mesh* from the right
+click menu.
 
-Note that the mesh asset is usually placed inside a fbx file and a few clicks
-are needed to select it. See the GIF below.
+Note that the mesh asset is usually located inside a fbx file. A few extra
+clicks are needed to select it. See the GIF below.
+
+![gif](http://i.giphy.com/26FLakB0pQ9nCxKY8.gif)
 
 ### Set up a character as usual.
 
