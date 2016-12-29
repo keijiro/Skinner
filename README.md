@@ -1,8 +1,8 @@
 Skinner
 =======
 
-![gif](http://68.media.tumblr.com/6c5f9ef37b27048e406baf00c7ddd5d1/tumblr_oir3z03Vaf1qio469o3_320.gif)
-![gif](http://68.media.tumblr.com/c0b9c3d6104449b5025132ef825eed01/tumblr_ohidp0DLyk1qio469o1_320.gif)
+![gif](http://i.imgur.com/k838bjc.gif)
+![gif](http://i.imgur.com/Elfd8QE.gif)
 
 *Skinner* is a collection of special effects that use vertices of an animating
 skinned mesh as emitting points. It uses a special [replacement shader]
