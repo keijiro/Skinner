@@ -7,10 +7,6 @@ Shader "Skinner/Glitch"
         _Smoothness("Smoothness", Range(0, 1)) = 0.5
         _Metallic("Metallic", Range(0, 1)) = 0
 
-        [Header(Glitch Thresholds)]
-        _EdgeThreshold("Edge Length", Range(0.001, 2)) = 1
-        _AreaThreshold("Triangle Area", Range(0.001, 0.1)) = 1
-
         [Header(Self Illumination)]
         _BaseHue("Base Hue", Range(0, 1)) = 0
         _HueRandomness("Hue Randomness", Range(0, 1)) = 0.2
