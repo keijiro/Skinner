@@ -7,7 +7,8 @@ Skinner
 *Skinner* is a collection of special effects that use vertices of an animating
 skinned mesh as emitting points. It uses a special [replacement shader]
 [ShaderRep] to convert vertex positions into GPU-friendly data, and thus it
-avoids spending extra memory and CPU time (uses GPU resources instead).
+avoids spending extra memory and CPU time for handling them (uses GPU
+resources instead).
 
 [ShaderRep]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
 
@@ -20,32 +21,32 @@ Skinner Asset Types
 
 A *Skinner model* is a simplified variant of a mesh asset that only has
 vertices and skin weights. All topological data of triangles are removed, and
-also overlapped vertices are stripped when converted from an original mesh.
+also overlapped vertices are stripped out when converted from an original mesh.
 
 ### Skinner Template
 
 A *Skinner template* is a pre-built mesh asset that provides vertices and
 topological data to the effect renderers. For instance, a *Skinner particle
 template* has thousands of particle instances that are placed at the world
-origin; A *Skinner particle renderer* moves them at run time.
+origin; A *Skinner particle renderer* will move them at run time.
 
 Skinner Component Classes
 -------------------------
 
-*Skinner* also provides some component classes to handle these asset at
-run-time.
+*Skinner* also provides some component classes to handle these asset during
+run time.
 
 ### Skinner Source
 
-The *Skinner Source* component is a subsystem that converts a deformed skinned
+The *Skinner source* component is a subsystem that converts a deformed skinned
 mesh into baked data. This data will be provided to multiple *Skinner
-Renderers*.
+renderers*.
 
-### Skinner Renderer
+### Skinner Renderers
 
-The *Skinner Renderer* components are special types of mesh renderers that
-deform a *Skinner Template* based on data provided from *Skinner Source*. Then
-it creates some interesting special effects.
+The *Skinner renderer* components are special types of mesh renderers that
+deform a *Skinner template* based on data provided from a *Skinner source*.
+Then it creates some interesting special effects.
 
 How To Set Up
 -------------
