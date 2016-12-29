@@ -14,9 +14,7 @@ sampler2D _PreviousVelocityBuffer;
 sampler2D _PreviousOrthnormBuffer;
 
 // Line width modifier
-half _SpeedToWidthMin;
-half _SpeedToWidthMax;
-half _Width;
+half3 _LineWidth; // (max width, cutoff, speed-to-width / max width)
 
 struct appdata
 {
@@ -47,9 +45,9 @@ v2f vert(appdata data)
     half3 binormal1 = StereoInverseProjection(B1.zw);
 
     // Line width
-    half width = _Width * data.vertex.z * (1 - data.vertex.y);
-    half width0 = width * smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, length(V0));
-    half width1 = width * smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, length(V1));
+    half width = _LineWidth.x * data.vertex.z * (1 - data.vertex.y);
+    half width0 = width * saturate((length(V0) - _LineWidth.y) * _LineWidth.z);
+    half width1 = width * saturate((length(V1) - _LineWidth.y) * _LineWidth.z);
 
     // Modify the vertex positions.
     float4 vp0 = float4(P0 + binormal0 * width0, 1);

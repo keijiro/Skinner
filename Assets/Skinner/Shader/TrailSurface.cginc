@@ -12,9 +12,7 @@ half _Smoothness;
 half _Metallic;
 
 // Line width modifier
-half _SpeedToWidthMin;
-half _SpeedToWidthMax;
-half _Width;
+half3 _LineWidth; // (max width, cutoff, speed-to-width / max width)
 
 // Color modifier
 half _SpeedToLightMin;
@@ -44,8 +42,8 @@ void vert(inout appdata_full data)
     // Attribute modifiers
     half speed = length(V);
 
-    half width = _Width * data.vertex.z * (1 - data.vertex.y);
-    width *= smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, speed);
+    half width = _LineWidth.x * data.vertex.z * (1 - data.vertex.y);
+    width *= saturate((speed - _LineWidth.y) * _LineWidth.z);
 
     half intensity = smoothstep(_SpeedToLightMin, _SpeedToLightMax, speed);
 

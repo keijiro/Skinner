@@ -7,7 +7,7 @@ namespace Skinner
     [RequireComponent(typeof(MeshRenderer))]
     public class SkinnerTrail : MonoBehaviour
     {
-        #region Public properties
+        #region External object/asset references
 
         /// Reference to an effect source.
         public SkinnerSource source {
@@ -28,6 +28,10 @@ namespace Skinner
         [SerializeField]
         [Tooltip("Reference to a template object used for rendering trail lines.")]
         SkinnerTrailTemplate _template;
+
+        #endregion
+
+        #region Dynamics settings
 
         /// Limits an amount of a vertex movement. This only affects changes
         /// in vertex positions (doesn't change velocity vectors).
@@ -50,6 +54,44 @@ namespace Skinner
         [SerializeField]
         [Tooltip("Drag coefficient (damping coefficient).")]
         float _drag = 5;
+
+        #endregion
+
+        #region Line width modifier
+
+        /// Part of lines under this speed will be culled.
+        public float cutoffSpeed {
+            get { return _cutoffSpeed; }
+            set { _cutoffSpeed = value; }
+        }
+
+        [SerializeField]
+        [Tooltip("Part of lines under this speed will be culled.")]
+        float _cutoffSpeed = 0;
+
+        /// Increases the line width based on its speed.
+        public float speedToWidth {
+            get { return _speedToWidth; }
+            set { _speedToWidth = value; }
+        }
+
+        [SerializeField]
+        [Tooltip("Increases the line width based on its speed.")]
+        float _speedToWidth = 0.02f;
+
+        /// The maximum width of lines.
+        public float maxWidth {
+            get { return _maxWidth; }
+            set { _maxWidth = value; }
+        }
+
+        [SerializeField]
+        [Tooltip("The maximum width of lines.")]
+        float _maxWidth = 0.05f;
+
+        #endregion
+
+        #region Other settings
 
         /// Determines the random number sequence used for the effect.
         public int randomSeed {
@@ -160,6 +202,7 @@ namespace Skinner
             block.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
             block.SetTexture("_VelocityBuffer", _kernel.GetLastBuffer(Buffers.Velocity));
             block.SetTexture("_OrthnormBuffer", _kernel.GetLastBuffer(Buffers.Orthnorm));
+            block.SetVector("_LineWidth", new Vector3(_maxWidth, _cutoffSpeed, _speedToWidth / _maxWidth));
             block.SetFloat("_RandomSeed", _randomSeed);
 
             _renderer.Update(_template.mesh);
@@ -177,6 +220,13 @@ namespace Skinner
         void OnDestroy()
         {
             _kernel.Release();
+        }
+
+        void OnValidate()
+        {
+            _cutoffSpeed = Mathf.Max(_cutoffSpeed, 0);
+            _speedToWidth = Mathf.Max(_speedToWidth, 0);
+            _maxWidth = Mathf.Max(_maxWidth, 0);
         }
 
         void LateUpdate()

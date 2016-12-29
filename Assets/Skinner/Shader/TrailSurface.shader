@@ -7,11 +7,6 @@ Shader "Skinner/Trail"
         _Smoothness("Smoothness", Range(0, 1)) = 0.5
         _Metallic("Metallic", Range(0, 1)) = 0
 
-        [Header(Line Width Modifier)]
-        _SpeedToWidthMin("Min Speed", Float) = 0
-        _SpeedToWidthMax("Max Speed", Float) = 4
-        _Width("Width At Max Speed", Float) = 0.05
-
         [Header(Self Illumination)]
         _BaseHue("Base Hue", Range(0, 1)) = 0
         _HueRandomness("Hue Randomness", Range(0, 1)) = 0.2

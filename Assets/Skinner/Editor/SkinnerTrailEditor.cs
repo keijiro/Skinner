@@ -9,16 +9,28 @@ namespace Skinner
     {
         SerializedProperty _source;
         SerializedProperty _template;
+
         SerializedProperty _speedLimit;
         SerializedProperty _drag;
+
+        SerializedProperty _cutoffSpeed;
+        SerializedProperty _speedToWidth;
+        SerializedProperty _maxWidth;
+
         SerializedProperty _randomSeed;
 
         void OnEnable()
         {
             _source = serializedObject.FindProperty("_source");
             _template = serializedObject.FindProperty("_template");
+
             _speedLimit = serializedObject.FindProperty("_speedLimit");
             _drag = serializedObject.FindProperty("_drag");
+
+            _cutoffSpeed = serializedObject.FindProperty("_cutoffSpeed");
+            _speedToWidth = serializedObject.FindProperty("_speedToWidth");
+            _maxWidth = serializedObject.FindProperty("_maxWidth");
+
             _randomSeed = serializedObject.FindProperty("_randomSeed");
         }
 
@@ -33,8 +45,18 @@ namespace Skinner
             EditorGUILayout.PropertyField(_template);
             reconfigured |= EditorGUI.EndChangeCheck();
 
+            EditorGUILayout.Space();
+
             EditorGUILayout.PropertyField(_speedLimit);
             EditorGUILayout.PropertyField(_drag);
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(_cutoffSpeed);
+            EditorGUILayout.PropertyField(_speedToWidth);
+            EditorGUILayout.PropertyField(_maxWidth);
+
+            EditorGUILayout.Space();
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(_randomSeed);
