@@ -30,13 +30,13 @@ Material:
       second: 0.097
     - first:
         name: _BaseHue
-      second: 0.582
+      second: 0.136
     - first:
         name: _Brightness
-      second: 1.05
+      second: 2.78
     - first:
         name: _BrightnessOffs
-      second: 2.62
+      second: 1.82
     - first:
         name: _ColorAnimLength
       second: 0.5
@@ -48,7 +48,7 @@ Material:
       second: 0.78
     - first:
         name: _EmissionProb
-      second: 0.22
+      second: 0.099
     - first:
         name: _EndIntensity
       second: 0.8
@@ -57,7 +57,7 @@ Material:
       second: 0.312
     - first:
         name: _HueShift
-      second: 0.81
+      second: 0.55
     - first:
         name: _Intensity
       second: 0.8
@@ -75,7 +75,7 @@ Material:
       second: 0.2
     - first:
         name: _Saturation
-      second: 1
+      second: 0.917
     - first:
         name: _Smoothness
       second: 0.52

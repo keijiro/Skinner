@@ -114,13 +114,13 @@ Material:
     m_Floats:
     - first:
         name: _BaseHue
-      second: 0.5
+      second: 0
     - first:
         name: _Brightness
-      second: 1.88
+      second: 2.29
     - first:
         name: _BrightnessOffs
-      second: 3.15
+      second: 4.1
     - first:
         name: _BumpScale
       second: 1
@@ -129,7 +129,7 @@ Material:
       second: 0.5
     - first:
         name: _CutoffSpeed
-      second: 0.26
+      second: 0.65
     - first:
         name: _DetailNormalMapScale
       second: 1
@@ -138,7 +138,7 @@ Material:
       second: 0
     - first:
         name: _EmissionProb
-      second: 0.1
+      second: 0.049
     - first:
         name: _GlossMapScale
       second: 1
@@ -150,10 +150,10 @@ Material:
       second: 1
     - first:
         name: _HueRandomness
-      second: 0.189
+      second: 0.112
     - first:
         name: _HueShift
-      second: 1
+      second: -0.53
     - first:
         name: _Metallic
       second: 0.473
@@ -183,7 +183,7 @@ Material:
       second: 1
     - first:
         name: _SpeedToIntensity
-      second: 0.86
+      second: 0.39
     - first:
         name: _SpeedToLightMax
       second: 3.6

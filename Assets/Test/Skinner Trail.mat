@@ -109,4 +109,4 @@ Material:
     m_Colors:
     - first:
         name: _Albedo
-      second: {r: 0.4705882, g: 0.121107265, b: 0.121107265, a: 1}
+      second: {r: 0.7647059, g: 0.6297578, b: 0.6297578, a: 1}
