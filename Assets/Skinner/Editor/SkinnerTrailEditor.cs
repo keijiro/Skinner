@@ -19,6 +19,8 @@ namespace Skinner
 
         SerializedProperty _randomSeed;
 
+        static GUIContent _labelSpeedToWidth = new GUIContent("Width/Speed");
+
         void OnEnable()
         {
             _source = serializedObject.FindProperty("_source");
@@ -53,7 +55,7 @@ namespace Skinner
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(_cutoffSpeed);
-            EditorGUILayout.PropertyField(_speedToWidth);
+            EditorGUILayout.PropertyField(_speedToWidth, _labelSpeedToWidth);
             EditorGUILayout.PropertyField(_maxWidth);
 
             EditorGUILayout.Space();
