@@ -228,7 +228,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &265396950
 Transform:
   m_ObjectHideFlags: 0
@@ -264,16 +264,16 @@ MonoBehaviour:
   _template: {fileID: 11400000, guid: a1c0dbc1e8b9d3b4f8a2691f638256de, type: 2}
   _speedLimit: 2
   _drag: 4
-  _gravity: {x: 0, y: 0, z: 0}
+  _gravity: {x: 0, y: -0.4, z: 0}
   _speedToLife: 0.2
   _maxLife: 2
   _speedToSpin: 1300
   _maxSpin: 10000
-  _speedToScale: 0.15
+  _speedToScale: 0.05
   _maxScale: 0.4
   _noiseAmplitude: 0.4
-  _noiseFrequency: 0.5
-  _noiseMotion: 1
+  _noiseFrequency: 0.7
+  _noiseMotion: 1.8
   _randomSeed: 0
   _kernelShader: {fileID: 4800000, guid: 74ae7fdcf7f71684b9953611f6be75f5, type: 3}
   _defaultMaterial: {fileID: 2100000, guid: 005a7e4fcd9a6154eb336c33fa0ac837, type: 2}
@@ -816,9 +816,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _source: {fileID: 1799048012}
   _historyLength: 256
-  _velocityScale: 0.2
-  _edgeThreshold: 0.8
-  _areaThreshold: 0.018
+  _velocityScale: 0
+  _edgeThreshold: 0.6
+  _areaThreshold: 0.013
   _randomSeed: 0
   _template: {fileID: 11400000, guid: e0ae8a07a8558a545809056703e0288e, type: 2}
   _kernelShader: {fileID: 4800000, guid: e27577e481b547b42a261145e13d6ce4, type: 3}

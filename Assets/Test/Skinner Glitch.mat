@@ -33,10 +33,10 @@ Material:
       second: 0.136
     - first:
         name: _Brightness
-      second: 2.78
+      second: 1.67
     - first:
         name: _BrightnessOffs
-      second: 1.82
+      second: 2.53
     - first:
         name: _ColorAnimLength
       second: 0.5
@@ -57,7 +57,7 @@ Material:
       second: 0.312
     - first:
         name: _HueShift
-      second: 0.55
+      second: 0.22
     - first:
         name: _Intensity
       second: 0.8
@@ -69,7 +69,7 @@ Material:
       second: 0.53
     - first:
         name: _ModDuration
-      second: 0.03
+      second: 0.01
     - first:
         name: _Probability
       second: 0.2
