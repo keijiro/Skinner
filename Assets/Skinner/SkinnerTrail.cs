@@ -154,6 +154,9 @@ namespace Skinner
 
             // Update the custom property block.
             var block = _renderer.propertyBlock;
+            block.SetTexture("_PreviousPositionBuffer", _kernel.GetWorkingBuffer(Buffers.Position));
+            block.SetTexture("_PreviousVelocityBuffer", _kernel.GetWorkingBuffer(Buffers.Velocity));
+            block.SetTexture("_PreviousOrthnormBuffer", _kernel.GetWorkingBuffer(Buffers.Orthnorm));
             block.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
             block.SetTexture("_VelocityBuffer", _kernel.GetLastBuffer(Buffers.Velocity));
             block.SetTexture("_OrthnormBuffer", _kernel.GetLastBuffer(Buffers.Orthnorm));

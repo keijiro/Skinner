@@ -28,11 +28,28 @@ Shader "Skinner/Trail"
         [HideInInspector] _PositionBuffer("", 2D) = ""{}
         [HideInInspector] _VelocityBuffer("", 2D) = ""{}
         [HideInInspector] _OrthnormBuffer("", 2D) = ""{}
+
+        [HideInInspector] _PreviousPositionBuffer("", 2D) = ""{}
+        [HideInInspector] _PreviousOrthnormBuffer("", 2D) = ""{}
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" }
+
+        Pass
+        {
+            Tags { "LightMode" = "MotionVectors" }
+            Cull Off ZWrite Off
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 3.0
+            #include "TrailMotion.cginc"
+            ENDCG
+        }
+
         Cull Off
+
         CGPROGRAM
         #pragma surface surf Standard vertex:vert nolightmap addshadow
         #pragma target 3.0

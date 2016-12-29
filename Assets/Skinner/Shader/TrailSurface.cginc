@@ -35,42 +35,45 @@ struct Input
     fixed facing : VFACE;
 };
 
-void vert(inout appdata_full v)
+void vert(inout appdata_full data)
 {
-    // Line hash ID
-    half hash = v.vertex.x;
+    // Line ID
+    float id = data.vertex.x;
 
-    // Position/Velocity
-    float4 texc = float4(v.vertex.xy, 0, 0);
-    float3 pos = tex2Dlod(_PositionBuffer, texc);
-    half speed = length(tex2Dlod(_VelocityBuffer, texc));
+    // Fetch the vertex position/velocity/orthnormal.
+    float4 texcoord = float4(data.vertex.xy, 0, 0);
+    float3 P = tex2Dlod(_PositionBuffer, texcoord).xyz;
+    float3 V = tex2Dlod(_VelocityBuffer, texcoord).xyz;
+    float4 B = tex2Dlod(_OrthnormBuffer, texcoord);
+
+    // Vertex speed
+    half speed = length(V);
 
     // Normal/Binormal
-    float4 basis = tex2Dlod(_OrthnormBuffer, texc);
-    half3 normal = StereoInverseProjection(basis.xy);
-    half3 binormal = StereoInverseProjection(basis.zw);
+    half3 normal = StereoInverseProjection(B.xy);
+    half3 binormal = StereoInverseProjection(B.zw);
 
-    // Dilate the line.
-    half width = smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, speed);
-    pos += binormal * (width * _Width * v.vertex.z * (1 - v.vertex.y));
+    // Line width
+    half width = _Width * data.vertex.z * (1 - data.vertex.y);
+    width *= smoothstep(_SpeedToWidthMin, _SpeedToWidthMax, speed);
 
     // Low frequency oscillation with half-wave rectified sinusoid.
-    half phase = UVRandom(hash, 0) * 32 + _Time.y * 4;
+    half phase = UVRandom(id, 0) * 32 + _Time.y * 4;
     half lfo = abs(sin(phase * UNITY_PI));
 
     // Switch LFO randomly at zero-cross points.
-    lfo *= UVRandom(hash + floor(phase), 1) < _EmissionProb;
+    lfo *= UVRandom(id + floor(phase), 1) < _EmissionProb;
 
     // Calculate HSB and convert it to RGB.
     half intensity = smoothstep(_SpeedToLightMin, _SpeedToLightMax, speed);
-    half hue = _BaseHue + UVRandom(hash, 2) * _HueRandomness + _HueShift * intensity;
+    half hue = _BaseHue + UVRandom(id, 2) * _HueRandomness + _HueShift * intensity;
     half3 rgb = lerp(1, HueToRGB(hue), _Saturation);
     rgb *= _Brightness * lfo + _BrightnessOffs * intensity;
 
-    // Output
-    v.vertex = float4(pos, v.vertex.w);
-    v.normal = normal;
-    v.color = half4(rgb, 1);
+    // Modify the vertex attributes.
+    data.vertex = float4(P + binormal * width, data.vertex.w);
+    data.normal = normal;
+    data.color = half4(rgb, 1);
 }
 
 void surf(Input IN, inout SurfaceOutputStandard o)
