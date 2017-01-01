@@ -44,6 +44,11 @@ v2f vert(appdata data)
     half3 binormal0 = StereoInverseProjection(B0.zw);
     half3 binormal1 = StereoInverseProjection(B1.zw);
 
+    // Soften the motion (full velocity is too much for most cases)
+    P0 = lerp(P0, P1, 0.5);
+    V0 = lerp(V0, V1, 0.5);
+    binormal0 = normalize(lerp(binormal0, binormal1, 0.5));
+
     // Line width
     half width = _LineWidth.x * data.vertex.z * (1 - data.vertex.y);
     half width0 = width * saturate((length(V0) - _LineWidth.y) * _LineWidth.z);
