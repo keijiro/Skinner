@@ -27,7 +27,7 @@ namespace Skinner
 
         /// Checks if the buffers are ready for use.
         public bool isReady {
-            get { return _frameCount > 2; }
+            get { return _frameCount > 1; }
         }
 
         /// Baked texture of skinned vertex positions.
@@ -178,26 +178,16 @@ namespace Skinner
             if (_tangentBuffer != null) Destroy(_tangentBuffer);
         }
 
-        void Update()
-        {
-            _frameCount++;
-
-            // We can't invoke vertex baking at this point because the skinned
-            // mesh hasn't been updated yet. Therefore, we only update the
-            // swap flag at the moment (it should be updated before LateUpdate
-            // because Skinnere renderers will refer to the vertex attribute
-            // before that).
-            _swapFlag = !_swapFlag;
-        }
-
         void LateUpdate()
         {
             // Swap the buffers and invoke vertex baking.
+            _swapFlag = !_swapFlag;
             if (_swapFlag)
                 _camera.SetTargetBuffers(_mrt1, _positionBuffer1.depthBuffer);
             else
                 _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
-           _camera.Render();
+            _camera.Render();
+            _frameCount++;
         }
 
         #endregion

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 4b46f74429dd52a48a78ef8447c37e45
-timeCreated: 1482590122
+timeCreated: 1483441243
 licenseType: Pro
 MonoImporter:
   serializedVersion: 2
@@ -9,7 +9,7 @@ MonoImporter:
   - _template: {fileID: 11400000, guid: e0ae8a07a8558a545809056703e0288e, type: 2}
   - _kernelShader: {fileID: 4800000, guid: e27577e481b547b42a261145e13d6ce4, type: 3}
   - _defaultMaterial: {fileID: 2100000, guid: fb77bef033b46c443b94f6981f20d997, type: 2}
-  executionOrder: 0
+  executionOrder: 300
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 

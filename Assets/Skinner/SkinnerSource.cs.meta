@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 279148f5956647743aa4d1c8440ff0f8
-timeCreated: 1482561575
+timeCreated: 1483441243
 licenseType: Pro
 MonoImporter:
   serializedVersion: 2
@@ -10,7 +10,7 @@ MonoImporter:
       type: 3}
   - _placeholderMaterial: {fileID: 2100000, guid: ea72285045ca83441b0e1dcdc29cd32c,
       type: 2}
-  executionOrder: 0
+  executionOrder: 100
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
