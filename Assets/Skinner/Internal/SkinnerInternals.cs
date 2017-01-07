@@ -9,7 +9,7 @@ namespace Skinner
         /// Returns the available format for animation kernel buffers.
         public static RenderTextureFormat supportedBufferFormat {
             get {
-                #if UNITY_IOS || UNITY_ANDROID
+                #if UNITY_IOS || UNITY_TVOS || UNITY_ANDROID
                 return RenderTextureFormat.ARGBHalf;
                 #else
                 return SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat) ?
