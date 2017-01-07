@@ -38,7 +38,7 @@ Shader "Skinner/Trail"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma target 3.0
+            #pragma target 4.0
             #include "TrailMotion.cginc"
             ENDCG
         }
