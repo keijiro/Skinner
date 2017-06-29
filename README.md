@@ -128,7 +128,8 @@ can be changed according to the speed of vertices, and thus it can be used to
 give some emphasis to character movement and trajectory.
 
 The shapes of particles are defined in a *Skinner particle template* asset.
-Any shape can be used in a template, but it's recommended to use meshes with the very low poly count because the number of particle instances is determined
+Any shape can be used in a template, but it's recommended to use meshes with
+the very low poly count because the number of particle instances is determined
 from the number of vertices in the shapes (low poly == more particles!). 
 
 ### Skinner Trail
@@ -146,7 +147,7 @@ lines are, the fewer the lines are drawn.
 Compatibility
 -------------
 
-At the moment *Skinner* is only tested on Windows, macOS, and iOS (metal).
+At the moment *Skinner* is only tested on Windows, macOS and iOS (metal).
 Possibly it runs on PS4 and Xboxone, but not sure about GLES3 and WebGL.
 
 License
