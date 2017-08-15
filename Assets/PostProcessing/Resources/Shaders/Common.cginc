@@ -16,7 +16,12 @@
 // -----------------------------------------------------------------------------
 // Uniforms
 
+#if defined(SEPARATE_TEXTURE_SAMPLER)
+Texture2D _MainTex;
+SamplerState sampler_MainTex;
+#else
 sampler2D _MainTex;
+#endif
 float4 _MainTex_TexelSize;
 float4 _MainTex_ST;
 
@@ -39,7 +44,7 @@ struct VaryingsDefault
 VaryingsDefault VertDefault(AttributesDefault v)
 {
     VaryingsDefault o;
-    o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+    o.pos = UnityObjectToClipPos(v.vertex);
     o.uv = v.texcoord.xy;
     o.uvSPR = UnityStereoScreenSpaceUVAdjust(v.texcoord.xy, _MainTex_ST);
     return o;
@@ -57,6 +62,12 @@ inline half Min3(half x, half y, half z) { return min(x, min(y, z)); }
 
 inline half Max3(half3 x) { return max(x.x, max(x.y, x.z)); }
 inline half Max3(half x, half y, half z) { return max(x, max(y, z)); }
+
+inline half Min4(half4 x) { return min(x.x, min(x.y, min(x.z, x.w))); }
+inline half Min4(half x, half y, half z, half w) { return min(x, min(y, min(z, w))); }
+
+inline half Max4(half4 x) { return max(x.x, max(x.y, max(x.z, x.w))); }
+inline half Max4(half x, half y, half z, half w) { return max(x, max(y, min(z, w))); }
 
 inline half  Pow2(half  x) { return x * x; }
 inline half2 Pow2(half2 x) { return x * x; }

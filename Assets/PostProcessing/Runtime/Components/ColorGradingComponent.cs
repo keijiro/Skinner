@@ -33,6 +33,7 @@ namespace UnityEngine.PostProcessing
         const float k_CurveStep = 1f / k_CurvePrecision;
 
         Texture2D m_GradingCurves;
+        Color[] m_pixels = new Color[k_CurvePrecision * 2];
 
         public override bool active
         {
@@ -222,11 +223,19 @@ namespace UnityEngine.PostProcessing
             outOffset = GetOffsetValue(offset);
         }
 
+        TextureFormat GetCurveFormat()
+        {
+            if (SystemInfo.SupportsTextureFormat(TextureFormat.RGBAHalf))
+                return TextureFormat.RGBAHalf;
+
+            return TextureFormat.RGBA32;
+        }
+
         Texture2D GetCurveTexture()
         {
             if (m_GradingCurves == null)
             {
-                m_GradingCurves = new Texture2D(k_CurvePrecision, 2, TextureFormat.RGBAHalf, false, true)
+                m_GradingCurves = new Texture2D(k_CurvePrecision, 2, GetCurveFormat(), false, true)
                 {
                     name = "Internal Curves Texture",
                     hideFlags = HideFlags.DontSave,
@@ -236,9 +245,7 @@ namespace UnityEngine.PostProcessing
                 };
             }
 
-            var pixels = new Color[k_CurvePrecision * 2];
             var curves = model.settings.curves;
-
             curves.hueVShue.Cache();
             curves.hueVSsat.Cache();
 
@@ -251,17 +258,17 @@ namespace UnityEngine.PostProcessing
                 float y = curves.hueVSsat.Evaluate(t);
                 float z = curves.satVSsat.Evaluate(t);
                 float w = curves.lumVSsat.Evaluate(t);
-                pixels[i] = new Color(x, y, z, w);
+                m_pixels[i] = new Color(x, y, z, w);
 
                 // YRGB
                 float m = curves.master.Evaluate(t);
                 float r = curves.red.Evaluate(t);
                 float g = curves.green.Evaluate(t);
                 float b = curves.blue.Evaluate(t);
-                pixels[i + k_CurvePrecision] = new Color(r, g, b, m);
+                m_pixels[i + k_CurvePrecision] = new Color(r, g, b, m);
             }
 
-            m_GradingCurves.SetPixels(pixels);
+            m_GradingCurves.SetPixels(m_pixels);
             m_GradingCurves.Apply(false, false);
 
             return m_GradingCurves;
@@ -272,6 +279,14 @@ namespace UnityEngine.PostProcessing
             return lut != null && lut.IsCreated() && lut.height == k_InternalLogLutSize;
         }
 
+        RenderTextureFormat GetLutFormat()
+        {
+            if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
+                return RenderTextureFormat.ARGBHalf;
+
+            return RenderTextureFormat.ARGB32;
+        }
+
         void GenerateLut()
         {
             var settings = model.settings;
@@ -280,7 +295,7 @@ namespace UnityEngine.PostProcessing
             {
                 GraphicsUtils.Destroy(model.bakedLut);
 
-                model.bakedLut = new RenderTexture(k_InternalLogLutSize * k_InternalLogLutSize, k_InternalLogLutSize, 0, RenderTextureFormat.ARGBHalf)
+                model.bakedLut = new RenderTexture(k_InternalLogLutSize * k_InternalLogLutSize, k_InternalLogLutSize, 0, GetLutFormat())
                 {
                     name = "Color Grading Log LUT",
                     hideFlags = HideFlags.DontSave,

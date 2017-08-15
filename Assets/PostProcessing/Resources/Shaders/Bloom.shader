@@ -43,8 +43,8 @@ Shader "Hidden/Post FX/Bloom"
         sampler2D _AutoExposure;
 
         float _PrefilterOffs;
-        half _Threshold;
-        half3 _Curve;
+        float _Threshold;
+        float3 _Curve;
         float _SampleScale;
 
         // -----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ Shader "Hidden/Post FX/Bloom"
         VaryingsMultitex VertMultitex(AttributesDefault v)
         {
             VaryingsMultitex o;
-            o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
+            o.pos = UnityObjectToClipPos(v.vertex);
             o.uvMain = UnityStereoScreenSpaceUVAdjust(v.texcoord.xy, _MainTex_ST);
             o.uvBase = o.uvMain;
 
@@ -79,11 +79,7 @@ Shader "Hidden/Post FX/Bloom"
         {
             float autoExposure = 1.0;
             uv = UnityStereoScreenSpaceUVAdjust(uv, _MainTex_ST);
-
-        #if EYE_ADAPTATION
             autoExposure = tex2D(_AutoExposure, uv).r;
-        #endif
-
             return tex2D(tex, uv) * autoExposure;
         }
 
@@ -151,7 +147,6 @@ Shader "Hidden/Post FX/Bloom"
         Pass
         {
             CGPROGRAM
-                #pragma multi_compile __ EYE_ADAPTATION
                 #pragma multi_compile __ ANTI_FLICKER
                 #pragma multi_compile __ UNITY_COLORSPACE_GAMMA
                 #pragma vertex VertDefault
