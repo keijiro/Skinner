@@ -51,7 +51,8 @@ How to Set Up
 
 ### Install the package.
 
-Download the package file from [here][download] and install it to a project.
+Download one of the unitypackage files from the [Releases] page and import it
+to a project.
 
 ### Convert a skinned mesh into a Skinner model.
 
@@ -153,8 +154,7 @@ Possibly it runs on PS4 and Xboxone, but not sure about GLES3 and WebGL.
 License
 -------
 
-See [LICENSE.md][License] (hint: MIT).
+[MIT](LICENSE.md)
 
 [ShaderRep]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
-[Download]: https://github.com/keijiro/Skinner/blob/master/Skinner.unitypackage
-[License]: https://github.com/keijiro/Skinner/blob/master/LICENSE.md
+[Releases]: https://github.com/keijiro/Skinner/releases
