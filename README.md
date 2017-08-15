@@ -5,10 +5,9 @@ Skinner
 ![gif](http://i.imgur.com/Elfd8QE.gif)
 
 *Skinner* is a collection of special effects that use vertices of an animating
-skinned mesh as emitting points. It uses a special [replacement shader]
-[ShaderRep] to convert vertex positions into GPU-friendly data, and thus it
-avoids spending extra memory and CPU time for handling them (uses GPU
-resources instead).
+skinned mesh as emitting points. It uses a special [replacement shader] to
+convert vertex positions into GPU-friendly data, and thus it avoids spending
+extra memory and CPU time for handling them (uses GPU resources instead).
 
 Skinner Asset Types
 -------------------
@@ -156,5 +155,5 @@ License
 
 [MIT](LICENSE.md)
 
-[ShaderRep]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
+[replacement shader]: https://docs.unity3d.com/Manual/SL-ShaderReplacement.html
 [Releases]: https://github.com/keijiro/Skinner/releases
