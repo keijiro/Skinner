@@ -56,6 +56,9 @@ namespace Skinner
 
         // Replacement shader used for baking vertex attributes.
         [SerializeField] Shader _replacementShader;
+        [SerializeField] Shader _replacementShaderPosition;
+        [SerializeField] Shader _replacementShaderNormal;
+        [SerializeField] Shader _replacementShaderTangent;
 
         // Placeholder material that draws nothing but only has the replacement tag.
         [SerializeField] Material _placeholderMaterial;
@@ -129,7 +132,6 @@ namespace Skinner
             _camera.orthographic = true;
             _camera.orthographicSize = 100;
 
-            _camera.SetReplacementShader(_replacementShader, "Skinner");
             _camera.enabled = false; // We'll explicitly call Render().
 
             // Add CullingStateController to hide from other cameras.
@@ -182,11 +184,37 @@ namespace Skinner
         {
             // Swap the buffers and invoke vertex baking.
             _swapFlag = !_swapFlag;
-            if (_swapFlag)
-                _camera.SetTargetBuffers(_mrt1, _positionBuffer1.depthBuffer);
+
+            // Render to vertex attribute buffers at once with using MRT. Note
+            // that we can't use MRT when VR is enabled (due to issue #942235).
+            // In that case, we use separate shaders to workaround the issue.
+            if (!UnityEngine.VR.VRSettings.enabled)
+            {
+                if (_swapFlag)
+                    _camera.SetTargetBuffers(_mrt1, _positionBuffer1.depthBuffer);
+                else
+                    _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
+                _camera.RenderWithShader(_replacementShader, "Skinner");
+            }
+            else if (_swapFlag)
+            {
+                _camera.targetTexture = _positionBuffer1;
+                _camera.RenderWithShader(_replacementShaderPosition, "Skinner");
+                _camera.targetTexture = _normalBuffer;
+                _camera.RenderWithShader(_replacementShaderNormal, "Skinner");
+                _camera.targetTexture = _tangentBuffer;
+                _camera.RenderWithShader(_replacementShaderTangent, "Skinner");
+            }
             else
-                _camera.SetTargetBuffers(_mrt0, _positionBuffer0.depthBuffer);
-            _camera.Render();
+            {
+                _camera.targetTexture = _positionBuffer0;
+                _camera.RenderWithShader(_replacementShaderPosition, "Skinner");
+                _camera.targetTexture = _normalBuffer;
+                _camera.RenderWithShader(_replacementShaderNormal, "Skinner");
+                _camera.targetTexture = _tangentBuffer;
+                _camera.RenderWithShader(_replacementShaderTangent, "Skinner");
+            }
+
             _frameCount++;
         }
 

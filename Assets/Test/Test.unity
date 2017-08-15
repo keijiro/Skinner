@@ -1182,5 +1182,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _model: {fileID: 11400000, guid: 918125cfe4d1d1947a9e19ebaa6637ed, type: 2}
   _replacementShader: {fileID: 4800000, guid: 3731eb6d7ec045947affb03711bfbc08, type: 3}
+  _replacementShaderPosition: {fileID: 4800000, guid: 657ff9a7c08e274409f49985e04c3f43,
+    type: 3}
+  _replacementShaderNormal: {fileID: 4800000, guid: 91572741988760e49a0aaef7557e4d54,
+    type: 3}
+  _replacementShaderTangent: {fileID: 4800000, guid: de6d2cdf5a71c0a48b363144c472b844,
+    type: 3}
   _placeholderMaterial: {fileID: 2100000, guid: ea72285045ca83441b0e1dcdc29cd32c,
     type: 2}
