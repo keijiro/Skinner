@@ -215,6 +215,12 @@ namespace Skinner
                 _camera.RenderWithShader(_replacementShaderTangent, "Skinner");
             }
 
+            // We manually disable the skinned mesh renderer here because
+            // there is a regression from 2017.1.0 that prevents
+            // CallingStateController from being called in OnPostRender.
+            // This is a pretty hackish workaround, so FIXME later.
+            GetComponent<SkinnedMeshRenderer>().enabled = false;
+
             _frameCount++;
         }
 
