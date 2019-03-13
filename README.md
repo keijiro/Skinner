@@ -17,8 +17,9 @@ Skinner Asset Types
 ### Skinner Model
 
 A *Skinner model* is a simplified variant of a mesh asset that only has
-vertices and skin weights. All topological data of triangles are removed, and
-also overlapped vertices are stripped out when converted from an original mesh.
+vertices and skin weights. When converted from an original mesh, all the
+topological data of triangles is removed and overlapped vertices are
+stripped out.
 
 ### Skinner Template
 
@@ -30,7 +31,7 @@ origin; A *Skinner particle renderer* will move them at run time.
 Skinner Component Classes
 -------------------------
 
-*Skinner* also provides some component classes to handle these asset during
+*Skinner* also provides some component classes to handle these assets during
 run time.
 
 ### Skinner Source
@@ -51,13 +52,13 @@ How to Set Up
 ### Install the package.
 
 Download one of the unitypackage files from the [Releases] page and import it
-to a project.
+into a project.
 
 ### Convert a skinned mesh into a Skinner model.
 
-Skinned mesh has to be converted into a *Skinner model* in advance to be
+A skinned mesh has to be converted into a *Skinner model* in advance to be
 used in the *Skinner* system. This can be done from the context menu; click a
-mesh asset to select, then choose *Skinner* -> *Convert Mesh* from the right
+mesh asset to select it, then choose *Skinner* -> *Convert Mesh* from the right
 click menu.
 
 Note that the mesh asset is usually located inside an fbx file. A few extra
@@ -67,7 +68,7 @@ clicks are needed to select it. See the GIF below.
 
 ### Set up a character as usual.
 
-Drag and drop a character prefab to the scene.
+Drag and drop a character prefab into the scene.
 
 ### Attach a *Skinner source* to a skinned mesh renderer.
 
@@ -79,7 +80,7 @@ to the *model* property.
 
 This *Skinner source* will override the skinned mesh renderer and then use it to
 convert vertex data. **Note that this character will disappear from the scene,**
-because it will be exclusively used for vertex conversion. If it has to keep
+because it will be exclusively used for vertex conversion. If it has to stay
 visible, another instance of the same character should be added to the scene as
 a substitution.
 
@@ -113,7 +114,7 @@ This component doesn't need a template asset.
 
 The *Skinner glitch* renderer draws triangles between randomly choosing vertices
 in a source. Although the number of triangles is fixed (21,845 triangles), triangles
-with long edge or large area will be pulled out to keep the silhouette. This behavior
+with long edges or a large area will be pulled out to maintain the silhouette. This behavior
 can be controlled by the threshold properties of the component.
 
 This component doesn't need a template asset.
@@ -123,7 +124,7 @@ This component doesn't need a template asset.
 ![gif](http://68.media.tumblr.com/c4c573ccfcf50011cdff66e3c7106a69/tumblr_oiup1kbJCp1qio469o2_320.gif)
 
 The *Skinner particle* is a particle system that emits particles from vertices
-in a source. The several parameters (duration, rotation, etc) of each particle
+in a source. Several parameters (duration, rotation, etc) of each particle
 can be changed according to the speed of vertices, and thus it can be used to
 give some emphasis to character movement and trajectory.
 
@@ -137,12 +138,12 @@ from the number of vertices in the shapes (low poly == more particles!).
 ![gif](http://68.media.tumblr.com/712809e81cda209c86e9744ca54ea3d9/tumblr_oir3z03Vaf1qio469o2_320.gif)
 
 The *Skinner trail* renderer draws trail lines from vertices in a source. The
-the width of the lines can be changed according to the speed of vertices, and thus
-it can be used to give emphasis to move too.
+width of the lines can be changed according to the speed of vertices, and thus
+it can be used to give emphasis to movement too.
 
 The length of the trail lines is pre-determined in a *Skinner trail template*
 asset. The number of lines is also pre-determined by its length. The longer the
-lines are, the fewer the lines are drawn.
+lines are, the fewer lines are drawn.
 
 Compatibility
 -------------
